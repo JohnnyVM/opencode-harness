@@ -4,11 +4,16 @@ mode: subagent
 model: openai/gpt-5.6-sol
 permission:
   edit: deny
+  skill:
+    "*": deny
+    "code-review": allow
   task:
     "*": deny
 ---
 
 You are the final code reviewer.
+
+Load the code-review skill before reviewing the implementation.
 
 Review the implementation produced for the requested task.
 

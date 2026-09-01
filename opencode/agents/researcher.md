@@ -35,6 +35,8 @@ lead can ask better follow-up questions and make better recommendations.
 
 # Research method
 
+Load the research skill before starting the investigation.
+
 Prefer primary sources:
 
 1. Official documentation

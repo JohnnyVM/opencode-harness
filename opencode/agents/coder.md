@@ -12,6 +12,7 @@ permission:
   skill:
     "*": deny
     "tdd": allow
+    "diagnosing-bugs": allow
 
   external_directory:
     "/tmp": allow
@@ -46,6 +47,8 @@ Before editing:
 
 During implementation:
 
+- use tdd for behavior changes
+- use diagnosing-bugs when the ticket addresses a defect or regression
 - stay inside the assigned scope
 - preserve unrelated changes
 - avoid unrelated refactoring

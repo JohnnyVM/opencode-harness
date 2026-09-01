@@ -15,6 +15,7 @@ permission:
     "tdd": allow
     "code-review": allow
     "implement-spec": allow
+    "handoff": allow
 
   task:
     "*": deny
@@ -187,4 +188,5 @@ Implementation is complete only when:
 - reviewer findings are resolved or explicitly accepted
 - the resulting behavior matches the engineering specification
 
-Return a concise implementation report to the engineering lead.
+Use handoff to return a concise implementation report, verification state,
+remaining risks, and unresolved work to the engineering lead.

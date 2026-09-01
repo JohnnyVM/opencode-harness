@@ -10,13 +10,13 @@ permission:
     "*": deny
     "ask-matt": allow
     "grilling": allow
-    "grill-me": allow
     "grill-with-docs": allow
     "domain-modeling": allow
     "codebase-design": allow
     "wayfinder": allow
     "to-spec": allow
     "to-tickets": allow
+    "handoff": allow
 
   task:
     "*": deny
@@ -62,7 +62,8 @@ For non-trivial work, use this loop:
    constraints are clear.
 9. Use to-spec.
 10. Use to-tickets when implementation should be decomposed.
-11. Hand the approved spec and tickets to the implementation-orchestrator.
+11. Use handoff to transfer the approved spec, tickets, decisions, and open
+    risks to the implementation-orchestrator.
 
 # Research is part of grilling
 
