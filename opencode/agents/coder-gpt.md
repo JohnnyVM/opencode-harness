@@ -1,7 +1,7 @@
 ---
 description: Implements one bounded engineering ticket
 mode: subagent
-model: ovhcloud/qwen3-coder-30b-a3b-instruct
+model: openai/gpt-5.6-luna
 
 permission:
   edit: allow
@@ -57,6 +57,9 @@ During implementation:
 - If you cannot make tests pass after 5 fix attempts, stop and write a comment
   on the issue explaining what you tried and what is blocked.
 - Limit the changes a source files
+- Test functionalities shall not be mixed in production code, where a functionality
+  need be tested isolated implement the dependencies as interfaces and create FakeInterfaces
+  to import in the test
 
 Forbidden actions:
 - Don't write summaries of the changes in files
