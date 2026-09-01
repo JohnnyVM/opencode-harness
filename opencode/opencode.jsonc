@@ -1,0 +1,19 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"lsp": true,
+	"mcp": {
+		"playwright": {
+			"type": "local",
+			"command": [
+				"podman",
+				"run",
+				"--rm",
+				"-i",
+				"--ipc=host",
+				"mcp/playwright"
+			],
+			"enabled": true,
+			"timeout": 1800
+		}
+	}
+}
