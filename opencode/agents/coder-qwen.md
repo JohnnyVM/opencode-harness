@@ -43,9 +43,9 @@ Before editing:
 
 1. Read the assigned specification sections.
 2. RUN the existing test using the commands specified by the orchestrator.
-2. Inspect the relevant implementation.
-3. Inspect current repository changes.
-4. Understand the acceptance criteria.
+3. Inspect the relevant implementation.
+4. Inspect current repository changes.
+5. Understand the acceptance criteria.
 
 During implementation:
 
@@ -56,9 +56,14 @@ During implementation:
 - avoid unrelated refactoring
 - follow existing repository conventions
 - prefer the smallest coherent implementation
-- If you cannot make tests pass after 5 fix attempts, stop and write a comment
-  on the issue explaining what you tried and what is blocked.
-- Limit the changes a source files
+- Complete one bounded ticket attempt. Do not loop through additional fixes;
+  return `BLOCKED` to the orchestrator if the ticket cannot be completed.
+- For a Debug Report correction, preserve its confirmed root cause and minimal
+  scope unless new evidence disproves it. If evidence contradicts the report,
+  return `BLOCKED` with the contradiction and do not broaden the fix.
+- For a confirmed behavior defect, add or update a regression test unless the
+  orchestrator explicitly documents why one is infeasible.
+- Limit changes to the files or directories explicitly assigned by the orchestrator.
 - Test functionalities shall not be mixed in production code, where a functionality
   need be tested isolated implement the dependencies as interfaces and create FakeInterfaces
   to import in the test
