@@ -104,6 +104,8 @@ are declared in the repository configuration.
 
 ## Absence and authority notes
 
+- Worktree-based execution is explicitly out of scope for now; this workflow
+  does not define or require worktrees as a feature.
 - This map describes configured intent, not a guarantee that every named skill or agent is installed by the runtime.
 - `CONTEXT.md` is the source of truth for the Orchestrator state names, legal transitions, and invariants.
 - GitHub Issues are the issue/specification surface; operational commands are documented in `issue-tracker.md`.
