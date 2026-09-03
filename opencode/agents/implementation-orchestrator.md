@@ -44,7 +44,9 @@ or incomplete packages, do not code: return `BLOCKED_SPEC` to the Lead.
 
 ## Guarded repository admission and lifecycle
 
-Before `PLANNING`, record an admission snapshot. Admit only a clean worktree:
+Before `PLANNING`, capture the original branch/ref and exact tip baseline
+before creating an implementation branch, then record an admission snapshot.
+Admit only a clean worktree:
 staged, unstaged, and untracked files block admission; ignored files are
 permitted. Reject detached HEAD, unresolved default branch, active or
 incomplete operations, locks, and ambiguous branch, ref, index, or metadata
@@ -62,9 +64,11 @@ handoffs, commits, and verification. Unexpected branch/ref/index/metadata,
 untracked, or out-of-scope drift stops non-destructively, preserves changes,
 and reports `BLOCKED_OPERATION`. Baseline operations are guarded
 fast-forward-only; never reset, clean, force, or overwrite changes.
-The `BLOCKED_OPERATION` report includes lifecycle stage, admitted branch and
-baseline commit, expected versus observed state, exact drift or unsafe
-operation, preserved-change status, and required Lead/operator resolution.
+The `BLOCKED_OPERATION` report includes the failed operation, expected vs
+observed state, completed checks, preserved branch/commit/worktree state, and
+the exact retry/operator action. Task crashes/cancellations and invocation/tool
+failures, as well as unsafe admission or lifecycle drift, route to
+`BLOCKED_OPERATION`.
 
 The Lead payload must contain `authorization: approved_by_user` (or an
 unambiguous equivalent), the approval message or faithful record, approved
@@ -152,10 +156,17 @@ bounded coder ticket, then requires full central verification and review again.
 `DEBUGGING_REQUIRED` sends the review failure packet to the debugger. A
 reviewer `BLOCKED: VERIFICATION_NOT_PASSED` returns to central verification and
 is not a verdict. Any post-review change invalidates prior verification and
-approval. `DONE` requires passing central verification and a non-blocking
-reviewer verdict, and is returned to the Lead. The final tip must be clean and
-its guarded lifecycle snapshot must match admission; otherwise report
-`BLOCKED_OPERATION`, not `DONE`.
+approval. After reviewer approval, validate that the original branch/ref
+exactly equals its captured pre-branch-creation baseline, the implementation
+branch/HEAD exactly equals the reviewed commit, and the worktree is clean.
+Fast-forward only advances the original branch to the reviewed tip. Validate
+the final original branch/HEAD is the clean reviewed tip. Any mismatch, drift,
+or integration failure is `BLOCKED_OPERATION`; preserve the implementation
+branch, commits, and worktree and do not merge, rebase, force-update, reset,
+restore, clean, stash, push, or delete the implementation branch. `DONE`
+requires passing central verification, a non-blocking reviewer verdict, and
+these final lifecycle checks; otherwise report `BLOCKED_OPERATION`, not
+`DONE`.
 
 # Budgets and escalation
 

@@ -63,7 +63,9 @@ Lead. The reviewer is only called after central verification passes.
 
 ## Repository lifecycle guard
 
-The Orchestrator admits only a clean worktree (staged, unstaged, and
+Before creating an implementation branch, the Orchestrator captures the
+original branch/ref and exact tip baseline. It then admits only a clean
+worktree (staged, unstaged, and
 untracked changes block; ignored files are permitted), a non-detached HEAD,
 resolved default branch, and no active/incomplete operation, lock, or
 ambiguous ref/index/metadata state. Admission records the exact branch and
@@ -77,8 +79,23 @@ and makes meaningful, non-empty issue-linked commits identifying the approved
 issue or ticket, after unit checks pass. Guarded
 fast-forward-only baseline operations are allowed. Any unexpected branch, ref,
 index, metadata, untracked, or out-of-scope drift stops non-destructively,
-preserves changes, and is reported as `BLOCKED_OPERATION`. A clean tip and
-matching lifecycle snapshot are required for final verification and review.
+preserves changes, and is reported as `BLOCKED_OPERATION`. Task
+crashes/cancellations and invocation/tool failures also route to
+`BLOCKED_OPERATION`.
+
+After reviewer approval, validate that the original branch/ref exactly equals
+the captured baseline, the implementation branch/HEAD exactly equals the
+reviewed commit, and the worktree is clean. Fast-forward only advances the
+original branch to the reviewed tip; then validate the final original
+branch/HEAD is the clean reviewed tip. Any mismatch, drift, or integration
+failure is `BLOCKED_OPERATION`, preserving the implementation branch, commits,
+and worktree: do not merge, rebase, force-update, reset, restore, clean,
+stash, push, or delete the implementation branch. A clean tip and matching
+lifecycle snapshot are required for final verification and review.
+
+The `BLOCKED_OPERATION` report contract includes the failed operation, expected
+vs observed state, completed checks, preserved branch/commit/worktree state,
+and exact retry/operator action.
 
 Native `Task` provides neither timeouts nor isolated-directory routing. These
 are not claimed by this workflow; follow-up work should specify external
