@@ -74,22 +74,29 @@ Verification results are classified as:
 
 ## Guarded repository lifecycle
 
-Before planning, the Orchestrator captures the original branch/ref and exact
-tip baseline before creating an implementation branch. It admits the
-repository only when the worktree is clean: no staged, unstaged, or untracked
-files are permitted (ignored files are permitted). It rejects detached HEAD,
-an unresolved default branch, active or incomplete operations, lock files, and
-any ambiguous ref, index, or metadata state. On the default branch it creates
-and switches to the implementation branch; on a clean usable non-default
-branch it keeps that branch. It records the implementation branch and exact
-admitted commit baseline.
+Before planning, when the run creates an implementation branch from the
+original/default branch, the Orchestrator captures that original branch/ref
+and exact tip baseline before creating the implementation branch. It admits
+the repository only when the worktree is clean: no staged, unstaged, or
+untracked files are permitted (ignored files are permitted). It rejects
+detached HEAD, an unresolved default branch, active or incomplete operations,
+lock files, and any ambiguous ref, index, or metadata state. On the default
+branch it creates and switches to the implementation branch; on a clean usable
+non-default branch it keeps that branch as-is: that branch is the
+implementation tip and there is no original-branch integration. It records
+the implementation branch and exact immutable admitted commit baseline.
 
 Coders run sequentially in the admitted working tree. Each assignment names
-the admitted branch and commit plus exact allowed and forbidden scopes. Coders
-must not run direct Git commands or modify `.git`; this is accidental
-protection, not a sandbox. The Orchestrator alone performs explicit staging and
-meaningful, non-empty issue-linked commits identifying the approved issue or
-ticket, after unit checks pass.
+the admitted branch, immutable admitted baseline, exact current expected
+implementation tip, and exact allowed and forbidden scopes. Coders validate
+the assigned current branch, current tip, and scope against that assignment;
+the immutable baseline is lifecycle history, not necessarily the current tip
+for a later sequential ticket. After each issue or correction commit, the
+Orchestrator updates the next assignment's expected current implementation
+tip. Coders must not run direct Git commands or modify `.git`; this is
+accidental protection, not a sandbox. The Orchestrator alone performs explicit
+staging and meaningful, non-empty issue-linked commits identifying the
+approved issue or ticket, after unit checks pass.
 
 The Orchestrator stops non-destructively on unexpected branch/ref/index/
 metadata/untracked or out-of-scope drift, preserving all changes and
@@ -97,15 +104,17 @@ reporting `BLOCKED_OPERATION`. Baseline capture and restoration use guarded
 fast-forward-only operations. A clean tip is required before final
 verification and review; any later drift invalidates those results.
 
-After reviewer approval, guarded integration first validates that the original
+After reviewer approval, if the run created an implementation branch from the
+original/default branch, guarded integration first validates that the original
 branch/ref is exactly the captured baseline, the implementation branch/HEAD
 exactly equals the reviewed commit, and the worktree is clean. It uses
 fast-forward only to advance the original branch to the reviewed tip, and
-validates the final
-original branch/HEAD is the clean reviewed tip. Any mismatch, drift, or
-integration failure is `BLOCKED_OPERATION`; preserve the implementation
-branch, commits, and worktree and perform no merge, rebase, force-update,
-reset, restore, clean, stash, push, or branch deletion.
+validates the final original branch/HEAD is the clean reviewed tip. For a clean
+non-default branch used as-is, the reviewed implementation tip is already the
+implementation result and no original-branch integration occurs. Any mismatch,
+drift, or integration failure is `BLOCKED_OPERATION`; preserve the
+implementation branch, commits, and worktree and perform no merge, rebase,
+force-update, reset, restore, clean, stash, push, or branch deletion.
 
 Every `BLOCKED_OPERATION` report includes: failed operation; expected vs
 observed state; completed checks; preserved branch/commit/worktree state; and

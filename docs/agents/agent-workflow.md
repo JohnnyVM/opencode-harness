@@ -63,31 +63,40 @@ Lead. The reviewer is only called after central verification passes.
 
 ## Repository lifecycle guard
 
-Before creating an implementation branch, the Orchestrator captures the
-original branch/ref and exact tip baseline. It then admits only a clean
+When creating an implementation branch from the original/default branch, the
+Orchestrator captures the original branch/ref and exact tip baseline before
+creating it. It then admits only a clean
 worktree (staged, unstaged, and
 untracked changes block; ignored files are permitted), a non-detached HEAD,
 resolved default branch, and no active/incomplete operation, lock, or
 ambiguous ref/index/metadata state. Admission records the exact branch and
 commit. On the default branch it creates and switches to an implementation
-branch; otherwise it uses the clean usable non-default branch.
+branch; otherwise it uses the clean usable non-default branch as-is. That
+branch is the implementation tip and no original-branch integration occurs.
 
-Coders are always sequential and receive the admitted branch, baseline commit,
-and exact scopes. They do not issue Git commands or modify `.git`; that is
-accidental protection, not sandboxing. The Orchestrator alone explicitly stages
-and makes meaningful, non-empty issue-linked commits identifying the approved
-issue or ticket, after unit checks pass. Guarded
+Coders are always sequential and receive the admitted branch, immutable
+baseline commit, exact current expected implementation tip, and exact scopes.
+They validate the assigned current branch, current tip, and scope; the
+immutable baseline is not the current tip for later sequential tickets. The
+Orchestrator updates the expected current tip after each issue or correction
+commit. They do not issue Git commands or modify `.git`; that is accidental
+protection, not sandboxing. The Orchestrator alone explicitly stages and makes
+meaningful, non-empty issue-linked commits identifying the approved issue or
+ticket, after unit checks pass. Guarded
 fast-forward-only baseline operations are allowed. Any unexpected branch, ref,
 index, metadata, untracked, or out-of-scope drift stops non-destructively,
 preserves changes, and is reported as `BLOCKED_OPERATION`. Task
 crashes/cancellations and invocation/tool failures also route to
 `BLOCKED_OPERATION`.
 
-After reviewer approval, validate that the original branch/ref exactly equals
+After reviewer approval, when an implementation branch was created from the
+original/default branch, validate that the original branch/ref exactly equals
 the captured baseline, the implementation branch/HEAD exactly equals the
 reviewed commit, and the worktree is clean. Fast-forward only advances the
 original branch to the reviewed tip; then validate the final original
-branch/HEAD is the clean reviewed tip. Any mismatch, drift, or integration
+branch/HEAD is the clean reviewed tip. For a clean non-default branch used
+as-is, the reviewed implementation tip is already the result and no
+original-branch integration occurs. Any mismatch, drift, or integration
 failure is `BLOCKED_OPERATION`, preserving the implementation branch, commits,
 and worktree: do not merge, rebase, force-update, reset, restore, clean,
 stash, push, or delete the implementation branch. A clean tip and matching

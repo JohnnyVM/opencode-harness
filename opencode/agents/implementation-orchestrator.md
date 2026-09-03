@@ -44,20 +44,27 @@ or incomplete packages, do not code: return `BLOCKED_SPEC` to the Lead.
 
 ## Guarded repository admission and lifecycle
 
-Before `PLANNING`, capture the original branch/ref and exact tip baseline
-before creating an implementation branch, then record an admission snapshot.
+Before `PLANNING`, if the run will create an implementation branch from the
+original/default branch, capture the original branch/ref and exact tip baseline
+before creating that branch, then record an admission snapshot.
 Admit only a clean worktree:
 staged, unstaged, and untracked files block admission; ignored files are
 permitted. Reject detached HEAD, unresolved default branch, active or
 incomplete operations, locks, and ambiguous branch, ref, index, or metadata
 states. Do not infer or repair ambiguity. On the default branch, create and
 switch to the approved implementation branch; otherwise keep a clean usable
-non-default branch. Capture the exact admitted branch and commit baseline.
+non-default branch as-is. That branch is the implementation tip and has no
+original-branch integration. Capture the exact admitted branch and immutable
+commit baseline.
 
-Run exactly one coder at a time. Assignments repeat the admitted branch, exact
-baseline commit, and exact allowed and forbidden scopes. Coders must not run
-direct Git commands or modify `.git`; this is accidental protection, not a
-sandbox. The Orchestrator alone explicitly stages and makes meaningful
+Run exactly one coder at a time. Assignments repeat the admitted branch,
+immutable admitted baseline, exact current expected implementation tip, and
+exact allowed and forbidden scopes. Coders validate the assigned current
+branch, current tip, and scope against the assignment; the immutable baseline
+is not treated as the current tip for later sequential tickets. After each
+issue or correction commit, update the next assignment's expected current
+implementation tip. Coders must not run direct Git commands or modify `.git`;
+this is accidental protection, not a sandbox. The Orchestrator alone explicitly stages and makes meaningful
 issue-linked, non-empty commits whose messages identify the approved issue or
 ticket, after unit checks pass. Compare guarded snapshots around
 handoffs, commits, and verification. Unexpected branch/ref/index/metadata,
@@ -156,12 +163,15 @@ bounded coder ticket, then requires full central verification and review again.
 `DEBUGGING_REQUIRED` sends the review failure packet to the debugger. A
 reviewer `BLOCKED: VERIFICATION_NOT_PASSED` returns to central verification and
 is not a verdict. Any post-review change invalidates prior verification and
-approval. After reviewer approval, validate that the original branch/ref
+approval. After reviewer approval, if the run created an implementation branch
+from the original/default branch, validate that the original branch/ref
 exactly equals its captured pre-branch-creation baseline, the implementation
 branch/HEAD exactly equals the reviewed commit, and the worktree is clean.
 Fast-forward only advances the original branch to the reviewed tip. Validate
-the final original branch/HEAD is the clean reviewed tip. Any mismatch, drift,
-or integration failure is `BLOCKED_OPERATION`; preserve the implementation
+the final original branch/HEAD is the clean reviewed tip. If a clean
+non-default branch was used as-is, the reviewed implementation tip is already
+the result and no original-branch integration occurs. Any mismatch, drift, or
+integration failure is `BLOCKED_OPERATION`; preserve the implementation
 branch, commits, and worktree and do not merge, rebase, force-update, reset,
 restore, clean, stash, push, or delete the implementation branch. `DONE`
 requires passing central verification, a non-blocking reviewer verdict, and
