@@ -120,7 +120,7 @@ supervision or an explicitly provisioned isolated environment if needed.
 | Lead | [`opencode/agents/lead.md`](../../opencode/agents/lead.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `to-tickets`, `handoff` | Edit denied; can delegate `researcher` and `implementation-orchestrator`. |
 | Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Lead | `research` | Edit is denied; delegation is allowed only to `explore`. Returns evidence, options, unknowns, and follow-up questions. |
 | Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Lead | `tdd`, `handoff` | Edit denied; delegates coders, debugger, and reviewer; owns the state machine. |
-| coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | `tdd`, `diagnosing-bugs` | Bounded implementation worker for small mechanical tickets. |
+| coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | `tdd`, `diagnosing-bugs` | Bounded implementation worker for small mechanical tickets; forced to return after 20 agentic iterations. |
 | coder-gpt | [`opencode/agents/coder-gpt.md`](../../opencode/agents/coder-gpt.md) | Orchestrator | `tdd`, `diagnosing-bugs` | Bounded implementation worker for complex, cross-module, or subtle tickets. |
 | Debugger | [`opencode/agents/debugger.md`](../../opencode/agents/debugger.md) | Orchestrator or reviewer escalation | `diagnosing-bugs` | Diagnostic-only; tracked artifacts may only be written under `/tmp`. |
 | Reviewer | [`opencode/agents/reviewer.md`](../../opencode/agents/reviewer.md) | Orchestrator | `code-review` | Read-only final review; returns `APPROVED`, `CHANGES_REQUIRED`, or `DEBUGGING_REQUIRED`. |
@@ -154,7 +154,8 @@ The only MCP server configured in
 | --- | --- | --- | --- |
 | `playwright` | Local Podman container: `podman run --rm -i --ipc=host mcp/playwright` | Yes; timeout `1800` | Configuration only; no MCP implementation or additional server is stored in this repository. |
 
-LSP is enabled globally and `subagent_depth` is `2`. The Orchestrator and
+The default primary agent is `lead`, LSP is enabled globally, and
+`subagent_depth` is `2`. The Orchestrator and
 Debugger may use `/tmp` and `/tmp/**` as external directories; coders are
 denied external-directory access. No other MCP servers, MCP-specific agent
 bindings, credentials, or external service paths are declared in the
