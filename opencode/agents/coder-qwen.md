@@ -6,7 +6,10 @@ temperature: 0.7
 top_p: 0.8
 
 permission:
-  edit: allow
+  edit:
+    "*": allow
+    ".git": deny
+    ".git/**": deny
   question: deny
 
   task:
@@ -16,6 +19,11 @@ permission:
     "*": deny
     "tdd": allow
     "diagnosing-bugs": allow
+
+  bash:
+    "*": allow
+    "git": deny
+    "git *": deny
 
   external_directory: deny
 ---

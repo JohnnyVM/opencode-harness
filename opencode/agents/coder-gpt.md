@@ -4,7 +4,10 @@ mode: subagent
 model: openai/gpt-5.6-luna
 
 permission:
-  edit: allow
+  edit:
+    "*": allow
+    ".git": deny
+    ".git/**": deny
   question: deny
 
   task:
@@ -14,6 +17,11 @@ permission:
     "*": deny
     "tdd": allow
     "diagnosing-bugs": allow
+
+  bash:
+    "*": allow
+    "git": deny
+    "git *": deny
 
   external_directory: deny
 ---
