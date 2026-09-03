@@ -13,6 +13,7 @@ permission:
 
   task:
     "*": deny
+    "explore": allow
 
   bash:
     "*": deny
