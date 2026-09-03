@@ -74,12 +74,13 @@ During implementation:
 - For a confirmed behavior defect, add or update a regression test unless the
   orchestrator explicitly documents why one is infeasible.
 - Limit changes to the files or directories explicitly assigned by the orchestrator.
-- Validate the assigned current branch, exact current expected implementation
-  tip, and allowed/forbidden scope before editing. The assignment's immutable
-  admitted baseline is lifecycle history and is not necessarily the current
-  tip for a later sequential ticket. Do not execute direct Git commands or
-  read, write, create, delete, or alter anything under `.git`. This is
-  accidental protection, not a sandbox or isolated directory guarantee.
+- Validate that the assignment is complete and its allowed/forbidden scope is
+  clear before editing; obey that scope. The assignment's admitted branch,
+  immutable baseline, and exact current expected tip are context supplied by
+  the Orchestrator, not values to validate by inspecting repository Git or
+  metadata. Do not execute direct Git commands or read, write, create, delete,
+  or alter anything under `.git`. This is accidental protection, not a sandbox
+  or isolated directory guarantee.
 - Test functionalities shall not be mixed in production code, where a functionality
   need be tested isolated implement the dependencies as interfaces and create FakeInterfaces
   to import in the test
@@ -107,6 +108,6 @@ Return:
 - any deviation from the expected implementation
 - unresolved issues
 
-If the assignment's branch, current expected tip, immutable baseline, or scope
-is missing or internally inconsistent, stop without cleanup and return
-`BLOCKED`; do not attempt repository repair.
+If the assignment's admitted branch, current expected tip, immutable baseline,
+or scope is missing or internally inconsistent, stop without cleanup and
+return `BLOCKED`; do not attempt repository inspection or repair.

@@ -57,14 +57,16 @@ non-default branch as-is. That branch is the implementation tip and has no
 original-branch integration. Capture the exact admitted branch and immutable
 commit baseline.
 
-Run exactly one coder at a time. Assignments repeat the admitted branch,
-immutable admitted baseline, exact current expected implementation tip, and
-exact allowed and forbidden scopes. Coders validate the assigned current
-branch, current tip, and scope against the assignment; the immutable baseline
-is not treated as the current tip for later sequential tickets. After each
-issue or correction commit, update the next assignment's expected current
-implementation tip. Coders must not run direct Git commands or modify `.git`;
-this is accidental protection, not a sandbox. The Orchestrator alone explicitly stages and makes meaningful
+Run exactly one coder at a time. Immediately before each delegation, validate
+that the current branch and exact current tip match the assignment's admitted
+branch and expected tip; a mismatch blocks delegation. Assignments repeat the
+admitted branch, immutable admitted baseline, exact current expected
+implementation tip, and exact allowed and forbidden scopes as immutable
+context. The immutable baseline is not treated as the current tip for later
+sequential tickets. Coders validate assignment completeness and allowed scope
+against the assignment and obey the scope; they do not inspect repository Git
+or metadata. Coders must not run direct Git commands or modify `.git`; this is
+accidental protection, not a sandbox. The Orchestrator alone explicitly stages and makes meaningful
 issue-linked, non-empty commits whose messages identify the approved issue or
 ticket, after unit checks pass. Compare guarded snapshots around
 handoffs, commits, and verification. Unexpected branch/ref/index/metadata,

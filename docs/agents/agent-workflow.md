@@ -74,15 +74,18 @@ commit. On the default branch it creates and switches to an implementation
 branch; otherwise it uses the clean usable non-default branch as-is. That
 branch is the implementation tip and no original-branch integration occurs.
 
-Coders are always sequential and receive the admitted branch, immutable
-baseline commit, exact current expected implementation tip, and exact scopes.
-They validate the assigned current branch, current tip, and scope; the
-immutable baseline is not the current tip for later sequential tickets. The
-Orchestrator updates the expected current tip after each issue or correction
-commit. They do not issue Git commands or modify `.git`; that is accidental
-protection, not sandboxing. The Orchestrator alone explicitly stages and makes
-meaningful, non-empty issue-linked commits identifying the approved issue or
-ticket, after unit checks pass. Guarded
+Coders are always sequential. Immediately before each delegation, the
+Orchestrator alone validates that the current branch and exact current tip
+match the assignment's admitted branch and expected tip; a mismatch blocks
+delegation. Assignments provide the admitted branch, immutable baseline commit,
+exact current expected implementation tip, and exact scopes as immutable
+context. The immutable baseline is not the current tip for later sequential
+tickets. Coders validate assignment completeness and allowed scope, obey the
+scope, and do not inspect repository Git or metadata. They do not issue Git
+commands or modify `.git`; that is accidental protection, not sandboxing. The
+Orchestrator alone explicitly stages and makes meaningful, non-empty
+issue-linked commits identifying the approved issue or ticket, after unit checks
+pass. Guarded
 fast-forward-only baseline operations are allowed. Any unexpected branch, ref,
 index, metadata, untracked, or out-of-scope drift stops non-destructively,
 preserves changes, and is reported as `BLOCKED_OPERATION`. Task

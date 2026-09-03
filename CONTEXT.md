@@ -86,14 +86,16 @@ non-default branch it keeps that branch as-is: that branch is the
 implementation tip and there is no original-branch integration. It records
 the implementation branch and exact immutable admitted commit baseline.
 
-Coders run sequentially in the admitted working tree. Each assignment names
-the admitted branch, immutable admitted baseline, exact current expected
-implementation tip, and exact allowed and forbidden scopes. Coders validate
-the assigned current branch, current tip, and scope against that assignment;
-the immutable baseline is lifecycle history, not necessarily the current tip
-for a later sequential ticket. After each issue or correction commit, the
-Orchestrator updates the next assignment's expected current implementation
-tip. Coders must not run direct Git commands or modify `.git`; this is
+Coders run sequentially in the admitted working tree. Immediately before
+each delegation, the Orchestrator alone validates that the current branch and
+exact current tip match the assignment's admitted branch and expected tip; a
+mismatch blocks delegation. Each assignment provides the admitted branch,
+immutable admitted baseline, exact current expected implementation tip, and
+exact allowed and forbidden scopes as immutable context. The immutable
+baseline is lifecycle history, not necessarily the current tip for a later
+sequential ticket. Coders validate assignment completeness and allowed scope
+before editing and obey the scope; they do not inspect repository Git or
+metadata. Coders must not run direct Git commands or modify `.git`; this is
 accidental protection, not a sandbox. The Orchestrator alone performs explicit
 staging and meaningful, non-empty issue-linked commits identifying the
 approved issue or ticket, after unit checks pass.
