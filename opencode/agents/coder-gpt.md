@@ -45,8 +45,7 @@ Before editing:
 1. Read the assigned specification sections.
 2. RUN the existing test using the commands specified by the orchestrator.
 3. Inspect the relevant implementation.
-4. Inspect current repository changes.
-5. Understand the acceptance criteria.
+4. Understand the acceptance criteria.
 
 During implementation:
 
@@ -65,6 +64,10 @@ During implementation:
 - For a confirmed behavior defect, add or update a regression test unless the
   orchestrator explicitly documents why one is infeasible.
 - Limit changes to the files or directories explicitly assigned by the orchestrator.
+- Work only on the admitted branch and commit named in the assignment. Do not
+  execute direct Git commands or read, write, create, delete, or alter anything
+  under `.git`. This is accidental protection, not a sandbox or isolated
+  directory guarantee.
 - Test functionalities shall not be mixed in production code, where a functionality
   need be tested isolated implement the dependencies as interfaces and create FakeInterfaces
   to import in the test
@@ -91,3 +94,7 @@ Return:
 - tests/checks run
 - any deviation from the expected implementation
 - unresolved issues
+
+If the branch, baseline, worktree, metadata, or scope does not match the
+assignment, stop without cleanup and return `BLOCKED` with the observed state;
+do not attempt repository repair.

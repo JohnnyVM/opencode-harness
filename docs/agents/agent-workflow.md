@@ -32,6 +32,7 @@ flowchart TD
     V -->|all central checks pass| RV[REVIEWING]
     V -->|FAIL| D[DEBUGGING<br/>debugger]
     V -->|INFRA_BLOCKED after retry| BI[BLOCKED_IMPLEMENTATION]
+    O -.->|lifecycle drift or unsafe operation| BO[BLOCKED_OPERATION]
     D -->|CODE_PROBLEM or TEST_PROBLEM| I
     D -->|DESIGN_SPEC_PROBLEM| BS[BLOCKED_SPEC]
     D -->|ENVIRONMENT_PROBLEM| BI
@@ -43,8 +44,10 @@ flowchart TD
     RV -->|VERIFICATION_NOT_PASSED| V
     BS -->|Lead resolves specification| SR
     BI -->|resolvable| P
+    BO -->|operator/Lead resolves; fresh admission| P
     BS -->|escalate| L
     BI -->|escalate| L
+    BO -->|preserve changes and report| L
     BD -->|missing evidence or access| L
 
     classDef terminal fill:#dcfce7,stroke:#166534;
@@ -57,6 +60,29 @@ Researcher may delegate repository exploration to `explore`. The Orchestrator
 is the implementation boundary: it schedules coders, performs central
 verification, routes failures, and returns completion or escalation to the
 Lead. The reviewer is only called after central verification passes.
+
+## Repository lifecycle guard
+
+The Orchestrator admits only a clean worktree (staged, unstaged, and
+untracked changes block; ignored files are permitted), a non-detached HEAD,
+resolved default branch, and no active/incomplete operation, lock, or
+ambiguous ref/index/metadata state. Admission records the exact branch and
+commit. On the default branch it creates and switches to an implementation
+branch; otherwise it uses the clean usable non-default branch.
+
+Coders are always sequential and receive the admitted branch, baseline commit,
+and exact scopes. They do not issue Git commands or modify `.git`; that is
+accidental protection, not sandboxing. The Orchestrator alone explicitly stages
+and makes meaningful, non-empty issue-linked commits identifying the approved
+issue or ticket, after unit checks pass. Guarded
+fast-forward-only baseline operations are allowed. Any unexpected branch, ref,
+index, metadata, untracked, or out-of-scope drift stops non-destructively,
+preserves changes, and is reported as `BLOCKED_OPERATION`. A clean tip and
+matching lifecycle snapshot are required for final verification and review.
+
+Native `Task` provides neither timeouts nor isolated-directory routing. These
+are not claimed by this workflow; follow-up work should specify external
+supervision or an explicitly provisioned isolated environment if needed.
 
 ## Configured agents
 

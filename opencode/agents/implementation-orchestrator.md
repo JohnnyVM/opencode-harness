@@ -42,6 +42,30 @@ or incomplete packages, do not code: return `BLOCKED_SPEC` to the Lead.
 
 # Input and handoffs
 
+## Guarded repository admission and lifecycle
+
+Before `PLANNING`, record an admission snapshot. Admit only a clean worktree:
+staged, unstaged, and untracked files block admission; ignored files are
+permitted. Reject detached HEAD, unresolved default branch, active or
+incomplete operations, locks, and ambiguous branch, ref, index, or metadata
+states. Do not infer or repair ambiguity. On the default branch, create and
+switch to the approved implementation branch; otherwise keep a clean usable
+non-default branch. Capture the exact admitted branch and commit baseline.
+
+Run exactly one coder at a time. Assignments repeat the admitted branch, exact
+baseline commit, and exact allowed and forbidden scopes. Coders must not run
+direct Git commands or modify `.git`; this is accidental protection, not a
+sandbox. The Orchestrator alone explicitly stages and makes meaningful
+issue-linked, non-empty commits whose messages identify the approved issue or
+ticket, after unit checks pass. Compare guarded snapshots around
+handoffs, commits, and verification. Unexpected branch/ref/index/metadata,
+untracked, or out-of-scope drift stops non-destructively, preserves changes,
+and reports `BLOCKED_OPERATION`. Baseline operations are guarded
+fast-forward-only; never reset, clean, force, or overwrite changes.
+The `BLOCKED_OPERATION` report includes lifecycle stage, admitted branch and
+baseline commit, expected versus observed state, exact drift or unsafe
+operation, preserved-change status, and required Lead/operator resolution.
+
 The Lead payload must contain `authorization: approved_by_user` (or an
 unambiguous equivalent), the approval message or faithful record, approved
 specification identifier/heading, decisions and constraints, tickets and
@@ -60,6 +84,8 @@ corrections.
 Track exactly one state at all times:
 
 `SPEC_RECEIVED` -> `PLANNING` -> `IMPLEMENTING` -> `VERIFYING`.
+Any non-terminal state with a guarded repository or execution violation ->
+`BLOCKED_OPERATION`.
 
 `SPEC_RECEIVED` may go to `BLOCKED_SPEC`; `PLANNING` may go to
 `BLOCKED_SPEC`; `IMPLEMENTING` may go to `VERIFYING` or
@@ -69,6 +95,8 @@ Track exactly one state at all times:
 correction, `DEBUGGING` for unexplained behavior, or `DONE` for approval;
 `BLOCKED_SPEC` returns to `SPEC_RECEIVED` after Lead resolution;
 `BLOCKED_IMPLEMENTATION` returns to `PLANNING` or escalates; and
+`BLOCKED_OPERATION` returns to `PLANNING` only after Lead/operator resolution
+and fresh admission; it preserves changes and reports the observed drift.
 `BLOCKED_DIAGNOSIS` escalates. `DONE` is terminal.
 
 `VERIFYING` enters `BLOCKED_IMPLEMENTATION` when an `INFRA_BLOCKED` result remains blocked after the one permitted retry following a concrete infrastructure correction. It must report the exact dependency/operator action required.
@@ -78,17 +106,11 @@ verification has passed.
 
 # Scheduling and execution
 
-Use one coder by default. Prefer `coder-qwen` for small mechanical tickets and
-`coder-gpt` for complex, cross-module, or subtle work. Two coders may run
-concurrently only if the approved package has at least two independently
-testable tickets with explicit disjoint file scopes, neither consumes
-uncommitted output from the other, shared interfaces are specified,
-verification can identify a failing ticket, and no generated file, lock file,
-schema, migration chain, or fixture is shared. If any condition is false or
-uncertain, run sequentially. In a shared working tree, reject concurrency
-unless isolated worktrees and explicit integration guarantee repository
-integrity. Never assign overlapping scopes. If qwen is blocked or fails its
-assigned verification twice, reassign that ticket to gpt once.
+Run coders sequentially only. Prefer `coder-qwen` for small mechanical tickets
+and `coder-gpt` for complex, cross-module, or subtle work. Never run concurrent
+coders, even with disjoint scopes. Never assign overlapping scopes. If qwen is
+blocked or fails its assigned verification twice, reassign that ticket to gpt
+once, still sequentially.
 
 # Central verification gate
 
@@ -131,7 +153,9 @@ bounded coder ticket, then requires full central verification and review again.
 reviewer `BLOCKED: VERIFICATION_NOT_PASSED` returns to central verification and
 is not a verdict. Any post-review change invalidates prior verification and
 approval. `DONE` requires passing central verification and a non-blocking
-reviewer verdict, and is returned to the Lead.
+reviewer verdict, and is returned to the Lead. The final tip must be clean and
+its guarded lifecycle snapshot must match admission; otherwise report
+`BLOCKED_OPERATION`, not `DONE`.
 
 # Budgets and escalation
 
