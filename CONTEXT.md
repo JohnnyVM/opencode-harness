@@ -10,7 +10,7 @@ The orchestrator tracks exactly one state at all times. The following states are
 
 1. **SPEC_RECEIVED** - Initial state when an approved package is received from the Lead
 2. **PLANNING** - When the spec is complete enough to schedule implementation
-3. **IMPLEMENTING** - When one or two bounded coder tickets are active
+3. **IMPLEMENTING** - When exactly one bounded coder ticket is active at a time
 4. **VERIFYING** - When coder work is complete and integrated, awaiting verification
 5. **DEBUGGING** - When required verification failed and debugging is needed
 6. **REVIEWING** - When verification passes and review is required
