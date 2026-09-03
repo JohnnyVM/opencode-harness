@@ -51,17 +51,18 @@ flowchart TD
     class DONE terminal;
 ```
 
-The Lead remains user-facing. It must not implement production code. The
-Orchestrator is the implementation boundary: it schedules coders, performs
-central verification, routes failures, and returns completion or escalation to
-the Lead. The reviewer is only called after central verification passes.
+The Lead remains user-facing. It must not implement production code. Only the
+Lead and Orchestrator may delegate tasks. The Orchestrator is the implementation
+boundary: it schedules coders, performs central verification, routes failures,
+and returns completion or escalation to the Lead. The reviewer is only called
+after central verification passes.
 
 ## Configured agents
 
 | Agent | Path | Delegated by | Relevant skills | Notes |
 | --- | --- | --- | --- | --- |
 | Lead | [`opencode/agents/lead.md`](../../opencode/agents/lead.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `to-tickets`, `handoff` | Edit denied; can delegate `researcher` and `implementation-orchestrator`. |
-| Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Lead | `research` | Edit denied; may delegate `explore`. Returns evidence, options, unknowns, and follow-up questions. |
+| Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Lead | `research` | Edit and delegation denied. Returns evidence, options, unknowns, and follow-up questions. |
 | Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Lead | `tdd`, `handoff` | Edit denied; delegates coders, debugger, and reviewer; owns the state machine. |
 | coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | `tdd`, `diagnosing-bugs` | Bounded implementation worker for small mechanical tickets. |
 | coder-gpt | [`opencode/agents/coder-gpt.md`](../../opencode/agents/coder-gpt.md) | Orchestrator | `tdd`, `diagnosing-bugs` | Bounded implementation worker for complex, cross-module, or subtle tickets. |
@@ -97,10 +98,11 @@ The only MCP server configured in
 | --- | --- | --- | --- |
 | `playwright` | Local Podman container: `podman run --rm -i --ipc=host mcp/playwright` | Yes; timeout `1800` | Configuration only; no MCP implementation or additional server is stored in this repository. |
 
-LSP is enabled globally and `subagent_depth` is `2`. The Orchestrator and both
-coders may use `/tmp` and `/tmp/**` as external directories. No other MCP
-servers, MCP-specific agent bindings, credentials, or external service paths
-are declared in the repository configuration.
+LSP is enabled globally and `subagent_depth` is `2`. The Orchestrator and
+Debugger may use `/tmp` and `/tmp/**` as external directories; coders are
+denied external-directory access. No other MCP servers, MCP-specific agent
+bindings, credentials, or external service paths are declared in the
+repository configuration.
 
 ## Absence and authority notes
 
