@@ -105,8 +105,8 @@ The main workflow references these paths:
 - Specification and decomposition: `to-spec`, `to-tickets`, and `handoff`.
 - Implementation and failure handling: `tdd` and `diagnosing-bugs`.
 - Completion: `code-review`.
-- Repository conventions: [`docs/agents/issue-tracker.md`](issue-tracker.md) and [`docs/agents/domain.md`](domain.md).
-- Domain context: [`CONTEXT.md`](../../CONTEXT.md); no [`docs/adr/`](../adr/) directory currently exists.
+- Repository conventions: [`docs/issue-tracker.md`](../issue-tracker.md) and [`docs/domain.md`](../domain.md).
+- Domain context: [`CONTEXT.md`](../../CONTEXT.md); no `docs/adr/` directory currently exists.
 
 The following names are referenced by agent configuration or supporting skill
 text but have no matching directory under `opencode/skills/` or agent file
