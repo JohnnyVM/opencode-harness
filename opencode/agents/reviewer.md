@@ -1,5 +1,6 @@
 ---
 description: Reviews completed implementation for correctness and regressions
+disable: true
 mode: subagent
 model: openai/gpt-5.6-sol
 permission:

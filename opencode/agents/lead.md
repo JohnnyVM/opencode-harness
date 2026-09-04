@@ -1,5 +1,6 @@
 ---
 description: Interactive engineering lead responsible for discovery, research-guided grilling, architecture decisions, and implementation specifications
+disable: true
 mode: primary
 model: openai/gpt-5.6-sol
 

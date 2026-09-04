@@ -1,5 +1,6 @@
 ---
 description: Reproduces verification failures, tests hypotheses, and reports evidence-backed root causes
+disable: true
 mode: subagent
 model: openai/gpt-5.6-sol
 

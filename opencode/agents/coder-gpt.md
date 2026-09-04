@@ -1,5 +1,6 @@
 ---
 description: Implements one bounded engineering ticket
+disable: true
 mode: subagent
 model: openai/gpt-5.6-luna
 

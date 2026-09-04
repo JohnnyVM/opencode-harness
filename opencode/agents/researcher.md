@@ -1,5 +1,6 @@
 ---
 description: Researches focused engineering questions to support the engineering lead's grilling and design decisions
+disable: true
 mode: subagent
 
 permission:

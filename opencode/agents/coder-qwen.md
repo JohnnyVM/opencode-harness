@@ -1,5 +1,6 @@
 ---
 description: Implements one bounded engineering ticket
+disable: true
 mode: subagent
 model: ovhcloud/qwen3-coder-30b-a3b-instruct
 temperature: 0.7

@@ -1,5 +1,6 @@
 ---
 description: Executes approved implementation, central verification, debugging, and review routing
+disable: true
 mode: subagent
 model: openai/gpt-5.6-terra
 
