@@ -1,6 +1,5 @@
 ---
 description: Implements one bounded engineering ticket
-disable: true
 mode: subagent
 model: ovhcloud/qwen3-coder-30b-a3b-instruct
 temperature: 0.7
@@ -13,19 +12,21 @@ permission:
     ".git": deny
     ".git/**": deny
   question: deny
+  skill: deny
 
   task:
     "*": deny
-
-  skill:
-    "*": deny
-    "tdd": allow
-    "diagnosing-bugs": allow
 
   bash:
     "*": allow
     "git": deny
     "git *": deny
+    "*/git": deny
+    "*/git *": deny
+    "ssh": deny
+    "ssh *": deny
+    "*/ssh": deny
+    "*/ssh *": deny
 
   external_directory: deny
 ---
@@ -61,8 +62,8 @@ Before editing:
 
 During implementation:
 
-- use tdd for behavior changes
-- use diagnosing-bugs when the ticket addresses a defect or regression
+- use a red-green-refactor cycle for behavior changes
+- reproduce and isolate defects before changing code
 - stay inside the assigned scope
 - preserve unrelated changes
 - avoid unrelated refactoring
@@ -83,9 +84,8 @@ During implementation:
   metadata. Do not execute direct Git commands or read, write, create, delete,
   or alter anything under `.git`. This is accidental protection, not a sandbox
   or isolated directory guarantee.
-- Test functionalities shall not be mixed in production code, where a functionality
-  need be tested isolated implement the dependencies as interfaces and create FakeInterfaces
-  to import in the test
+- Follow the specification's approved seams. Do not add production interfaces,
+  adapters, or other abstractions solely to make a test convenient.
 
 Forbidden actions:
 - Don't write summaries of the changes in files

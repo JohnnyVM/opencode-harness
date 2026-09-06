@@ -13,6 +13,8 @@ Issues and specifications live in GitHub Issues. Use the `gh` CLI for issue oper
 
 Pull requests are not a triage request surface; use GitHub Issues for specifications and tickets.
 
-When a skill says to publish a specification or ticket, create a GitHub issue. Skills publish specifications and tickets as GitHub issues.
+When `to-spec` publishes a specification, create a GitHub issue.
 
-When one issue blocks another, use native GitHub issue dependencies when available. Otherwise, include a line such as `Blocked by: #<issue>` in the blocked issue's body.
+When one issue blocks another, use native GitHub issue dependencies when
+available. Otherwise, include a line such as `Blocked by: #<issue>` in the
+blocked issue's body.

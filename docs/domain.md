@@ -11,3 +11,7 @@ This repository uses a single-context domain documentation layout.
 Use the vocabulary defined in `CONTEXT.md` when naming domain concepts. If an existing ADR conflicts with the proposed work, surface the conflict explicitly rather than silently overriding it.
 
 `CONTEXT.md` is the repository-wide glossary and domain context. `docs/adr/` contains repository-wide architecture and design decisions.
+
+Operational agent states and repository-lifecycle rules are not domain
+glossary content. They live in
+[`docs/agents/orchestrator-state-machine.md`](./agents/orchestrator-state-machine.md).

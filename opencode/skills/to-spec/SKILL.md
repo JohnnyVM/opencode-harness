@@ -3,19 +3,28 @@ name: to-spec
 description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.
+This skill takes the current conversation context and codebase understanding
+and produces a stable draft specification. Do not conduct new discovery or
+interview the user; synthesize only what has already been decided. If a
+required decision is unresolved, record it under Explicit Unknowns.
 
-The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.
+Read `docs/issue-tracker.md` for the publication workflow and `docs/domain.md`
+for domain-document conventions. If either required document is missing, report
+the missing setup instead of referring to another skill. Use the `github` skill
+when the configured issue tracker is GitHub.
 
 ## Process
 
 1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
 
-2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
+2. Record the already-approved seams at which the feature will be tested.
+Prefer existing seams to new ones and use the highest stable seam possible. Do
+not introduce or ask the user to approve new seams during this synthesis step;
+record unresolved seam decisions under Explicit Unknowns.
 
-Check with the user that these seams match their expectations.
-
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the template below. Publish it to the project issue
+tracker only when the user has explicitly authorized creating or updating that
+issue. Apply labels only when `docs/issue-tracker.md` explicitly defines them.
 
 <spec-template>
 
@@ -62,6 +71,53 @@ A list of testing decisions that were made. Include:
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+
+## Tickets and Dependencies
+
+A numbered implementation sequence. For every ticket include:
+
+- ticket ID and objective
+- dependencies or `None`
+- exact allowed files or directories
+- forbidden files or directories
+- relevant decisions and acceptance criteria
+
+## Acceptance Criteria
+
+A numbered, observable list. Each criterion must be specific enough for the
+Tester to determine pass or fail without interpreting product intent.
+
+## Verification Commands
+
+### Local
+
+For every required local check include the exact command, working directory,
+prerequisites, and expected successful result. Include tests, builds, static
+analysis, and acceptance checks that apply.
+
+### Remote
+
+For every required remote check include:
+
+- setup or publication prerequisite
+- exact target remote and ref, with commit identity bound at runtime to the
+  Orchestrator's final implementation commit
+- exact command used to retrieve or run the check
+- expected successful result
+- any external-write authorization the Orchestrator needs
+
+If remote verification does not apply, write `Not applicable` with the reason.
+Do not omit this section.
+
+## Risks
+
+Known implementation, migration, compatibility, operational, and verification
+risks, with mitigations where known. Write `None identified` when appropriate.
+
+## Explicit Unknowns
+
+Every unresolved requirement, decision, dependency, environment constraint, or
+verification gap. Write `None` only when the package is complete.
 
 ## Out of Scope
 
