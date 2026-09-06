@@ -1,0 +1,95 @@
+import contextlib
+import io
+import os
+from pathlib import Path
+import tempfile
+import unittest
+
+from scripts import install
+
+
+class InstallerTests(unittest.TestCase):
+    def make_source(self, root):
+        source = Path(root) / "opencode"
+        (source / "agents").mkdir(parents=True)
+        (source / "skills" / "alpha").mkdir(parents=True)
+        (source / "commands").mkdir(parents=True)
+        (source / "opencode.jsonc").write_text("{}")
+        (source / "agents" / "z.md").write_text("z")
+        (source / "agents" / "ignore.txt").write_text("ignore")
+        (source / "commands" / "a.md").write_text("a")
+        return source
+
+    def test_clean_install_creates_absolute_links(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = self.make_source(temp)
+            home = Path(temp) / "home"
+            self.assertEqual(install.install(source, home), 0)
+            destination = home / ".config" / "opencode"
+            expected = {
+                destination / "opencode.jsonc": source / "opencode.jsonc",
+                destination / "agents" / "z.md": source / "agents" / "z.md",
+                destination / "skills" / "alpha": source / "skills" / "alpha",
+                destination / "commands" / "a.md": source / "commands" / "a.md",
+            }
+            for path, target in expected.items():
+                self.assertTrue(path.is_symlink())
+                self.assertEqual(os.readlink(path), str(target.resolve()))
+
+    def test_source_resolution_does_not_depend_on_cwd(self):
+        with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as outside:
+            old_cwd = os.getcwd()
+            try:
+                os.chdir(outside)
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    self.assertEqual(install.main(["--dry-run"], home=home), 0)
+            finally:
+                os.chdir(old_cwd)
+            self.assertIn(str(install.source_root()), output.getvalue())
+
+    def test_conflicts_are_skipped_and_other_links_continue(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = self.make_source(temp)
+            home = Path(temp) / "home"
+            destination = home / ".config" / "opencode"
+            destination.mkdir(parents=True)
+            (destination / "opencode.jsonc").write_text("keep")
+            (destination / "agents").mkdir()
+            (destination / "agents" / "z.md").mkdir()
+            (destination / "skills").mkdir()
+            os.symlink(source / "skills" / "alpha", destination / "skills" / "alpha")
+            (destination / "commands").mkdir()
+            os.symlink(destination / "commands" / "missing.md", destination / "commands" / "a.md")
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(install.install(source, home), 0)
+            self.assertEqual((destination / "opencode.jsonc").read_text(), "keep")
+            self.assertTrue((destination / "agents" / "z.md").is_dir())
+            self.assertTrue((destination / "skills" / "alpha").is_symlink())
+            self.assertTrue((destination / "commands" / "a.md").is_symlink())
+            self.assertIn("skip", output.getvalue().lower())
+
+    def test_dry_run_does_not_write_and_rerun_skips(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = self.make_source(temp)
+            home = Path(temp) / "home"
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(install.install(source, home, dry_run=True), 0)
+            self.assertFalse(home.exists())
+            self.assertIn("link", output.getvalue().lower())
+            self.assertEqual(install.install(source, home), 0)
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(install.install(source, home), 0)
+            self.assertGreaterEqual(output.getvalue().lower().count("skip"), 4)
+
+    def test_invalid_arguments_are_nonzero(self):
+        with self.assertRaises(SystemExit) as raised:
+            install.main(["--not-an-option"])
+        self.assertNotEqual(raised.exception.code, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
