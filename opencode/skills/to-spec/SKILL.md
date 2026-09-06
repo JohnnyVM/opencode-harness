@@ -9,9 +9,9 @@ interview the user; synthesize only what has already been decided. If a
 required decision is unresolved, record it under Explicit Unknowns.
 
 Read `docs/issue-tracker.md` for the publication workflow and `docs/domain.md`
-for domain-document conventions. If either required document is missing, report
-the missing setup instead of referring to another skill. Use the `github` skill
-when the configured issue tracker is GitHub.
+for domain-document conventions. If either required document is missing, tell the
+user to run `/setup-matt-pocock-skills` rather than reporting missing setup. Use the
+`github` skill when the configured issue tracker is GitHub.
 
 ## Process
 

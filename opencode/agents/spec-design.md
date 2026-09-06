@@ -13,6 +13,10 @@ permission:
     "specs/**": allow
     "**/CONTEXT.md": allow
     "**/docs/adr/**": allow
+    "docs/issue-tracker.md": allow
+    "docs/domain.md": allow
+    ".scratch/**/spec.md": allow
+    ".scratch/**/issues/*.md": allow
 
   skill:
     "*": deny
@@ -22,6 +26,7 @@ permission:
     "codebase-design": allow
     "to-spec": allow
     "github": allow
+    "setup-matt-pocock-skills": allow
 
   task:
     "*": deny
