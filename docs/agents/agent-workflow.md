@@ -66,6 +66,11 @@ the user. The Tester runs the complete local and remote verification matrix and
 aggregates all failures from one sweep. The Code Reviewer runs only after the
 Tester passes. Delegated agents cannot delegate further.
 
+The explicit user-triggered `/setup-matt-pocock-skills` command runs via Spec Design
+and configures GitHub or local Markdown tracker conventions and domain docs after
+preview/confirmation. This command is separate from the normal spec/implementation
+flow and is never invoked automatically.
+
 ## Repository lifecycle guard
 
 The Orchestrator admits only an unambiguous clean repository state, validates
@@ -82,10 +87,10 @@ supervision or an explicitly provisioned isolated environment if needed.
 
 | Agent | Path | Delegated by | Relevant skills | Notes |
 | --- | --- | --- | --- | --- |
-| Spec Design | [`opencode/agents/spec-design.md`](../../opencode/agents/spec-design.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `github` | May edit domain, ADR, and specification documents; production edits remain denied. |
+| Spec Design | [`opencode/agents/spec-design.md`](../../opencode/agents/spec-design.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `github`, `setup-matt-pocock-skills` | May edit domain, ADR, and specification documents; production edits remain denied. |
 | Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Spec Design | None | Edit and delegation are denied. Returns evidence, options, unknowns, and follow-up questions. |
 | Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Primary agent | None | Edit denied; runs at most one leaf worker at a time and owns the state machine. |
-| coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | None | Bounded implementation worker for small mechanical tickets; forced to return after 20 agentic iterations. |
+| coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | None | Bounded implementation worker for small mechanical tickets; forced to return after 100 agentic iterations. |
 | coder-gpt | [`opencode/agents/coder-gpt.md`](../../opencode/agents/coder-gpt.md) | Orchestrator | None | Bounded implementation worker for complex, cross-module, or subtle tickets. |
 | Debugger | [`opencode/agents/debugger.md`](../../opencode/agents/debugger.md) | Orchestrator | None | Diagnostic-only; disposable artifacts may only be written under `/tmp`. |
 | Tester | [`opencode/agents/tester.md`](../../opencode/agents/tester.md) | Orchestrator | None | Runs all local and remote checks and returns one consolidated result. |
@@ -100,6 +105,7 @@ The main workflow references these paths:
 - Specification publication: `to-spec` and `github`.
 - Repository conventions: [`docs/issue-tracker.md`](../issue-tracker.md) and [`docs/domain.md`](../domain.md).
 - Domain context: [`CONTEXT.md`](../../CONTEXT.md); no `docs/adr/` directory currently exists.
+- Setup commands: `setup-matt-pocock-skills`.
 
 ## MCP and runtime capabilities
 

@@ -5,19 +5,35 @@ guarded implementation.
 
 ## Install
 
-Link the repository configuration into OpenCode's global configuration
-directory:
+Install the repository configuration into OpenCode's global configuration
+directory using the installer script:
 
 ```bash
-mkdir -p "$HOME/.config/opencode"
-ln -s "$PWD/opencode/opencode.jsonc" "$HOME/.config/opencode/opencode.jsonc"
-ln -s "$PWD/opencode/agents" "$HOME/.config/opencode/agents"
-ln -s "$PWD/opencode/skills" "$HOME/.config/opencode/skills"
+python3 scripts/install.py
 ```
 
-These commands fail rather than replace existing destinations. Back up and
-remove an existing destination before linking it. Quit and restart OpenCode
-after changing configuration, agents, or skills.
+The installer creates individual absolute symbolic links for exactly these
+repository targets:
+
+- `opencode/opencode.jsonc`
+- each `opencode/agents/*.md`
+- each `opencode/skills/<skill>/`
+- each `opencode/commands/*.md`
+
+It skips existing destinations rather than replacing them. Back up and remove
+an existing destination before linking it if needed.
+
+The installer supports a `--dry-run` option to preview changes without
+making them:
+
+```bash
+python3 scripts/install.py --dry-run
+```
+
+Existing files, directories, valid links, and broken links are warned about
+and skipped without modification. The installer resolves source paths
+independently of the current working directory (cwd-independent). After
+installation, restart OpenCode to load the new configuration.
 
 See [`docs/agents/agent-workflow.md`](docs/agents/agent-workflow.md) for the
 agent map and
