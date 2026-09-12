@@ -76,11 +76,14 @@ During implementation:
 - Limit changes to the files or directories explicitly assigned by the orchestrator.
 - Validate that the assignment is complete and its allowed/forbidden scope is
   clear before editing; obey that scope. The assignment's admitted branch,
-  immutable baseline, and exact current expected tip are context supplied by
-  the Orchestrator, not values to validate by inspecting repository Git or
-  metadata. Do not execute direct Git commands or read, write, create, delete,
-  or alter anything under `.git`. This is accidental protection, not a sandbox
-  or isolated directory guarantee.
+  immutable baseline, stable current expected `HEAD`, existing expected
+  uncommitted candidate, and exact additional allowed scope are context
+  supplied by the Orchestrator, not values to validate by inspecting repository
+  Git or metadata. Expected candidate changes from earlier sequential tickets
+  are not yours to revert or rewrite unless they are in the assigned scope. Do
+  not execute direct Git commands or read, write, create, delete, or alter
+  anything under `.git`. This is accidental protection, not a sandbox or
+  isolated directory guarantee.
 - Follow the specification's approved seams. Do not add production interfaces,
   adapters, or other abstractions solely to make a test convenient.
 
@@ -89,6 +92,10 @@ Forbidden actions:
 - Don't modify documentation that is not specifically requested by the orchestrator
 
 Verify the result using the commands specified by the orchestrator.
+
+These focused ticket-scoped checks are development evidence, not approval of
+the complete Verification Matrix. Tester is the sole authority for every
+supplied portion of that matrix.
 
 When the orchestrator assigns a terminal command, execute it with the Bash tool
 instead of returning a proposed tool call. Wait for the command to finish and
@@ -107,6 +114,7 @@ Return:
 - any deviation from the expected implementation
 - unresolved issues
 
-If the assignment's admitted branch, current expected tip, immutable baseline,
-or scope is missing or internally inconsistent, stop without cleanup and
-return `BLOCKED`; do not attempt repository inspection or repair.
+If the assignment's admitted branch, stable current expected `HEAD`, immutable
+baseline, expected candidate, or scope is missing or internally inconsistent,
+stop without cleanup and return `BLOCKED`; do not attempt repository inspection
+or repair.

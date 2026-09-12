@@ -90,6 +90,26 @@ class InstallerTests(unittest.TestCase):
             install.main(["--not-an-option"])
         self.assertNotEqual(raised.exception.code, 0)
 
+    def test_real_agent_enumeration_includes_cleaner(self):
+        source = install.source_root() / "opencode"
+        entries = dict(install._entries(source))
+        cleaner = source / "agents" / "cleaner.md"
+        self.assertIn(cleaner, entries)
+        self.assertEqual(entries[cleaner], Path("agents") / "cleaner.md")
+
+    def test_real_implement_command_is_discovered_and_linked(self):
+        source = install.source_root() / "opencode"
+        implement = source / "commands" / "implement.md"
+        entries = dict(install._entries(source))
+        self.assertEqual(entries[implement], Path("commands") / "implement.md")
+
+        with tempfile.TemporaryDirectory() as home:
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install.install(source, home), 0)
+            destination = Path(home) / ".config" / "opencode" / "commands" / "implement.md"
+            self.assertTrue(destination.is_symlink())
+            self.assertEqual(os.readlink(destination), str(implement.resolve()))
+
 
 if __name__ == "__main__":
     unittest.main()
