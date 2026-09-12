@@ -28,7 +28,8 @@ supplied all of these inputs:
 
 - approved specification
 - combined diff and changed-file list
-- a Tester `PASS` report containing every required local and remote check
+- every applicable Tester `PASS` report, accounting for the complete approved
+  local matrix and any required remote matrix
 - exact commit to review
 - coder reports
 - any Debug Reports and resulting fixes
@@ -37,9 +38,12 @@ supplied all of these inputs:
 If the Tester has not returned `PASS`, do not review and return exactly
 `BLOCKED: TESTING_NOT_PASSED`.
 
-Before reviewing, run `git rev-parse HEAD`. The supplied review commit, the
-Tester report's implementation commit, and current `HEAD` must be identical.
-If they differ, return exactly `BLOCKED: TESTING_NOT_PASSED`.
+Before reviewing, run `git rev-parse HEAD`. The supplied review commit and
+current `HEAD` must be identical. A pre-commit local Tester report identifies
+its supplied branch/current-`HEAD` context and is not required to claim the
+later implementation commit. When remote verification applies, every remote
+Tester result must identify the supplied review commit. If these conditions do
+not hold, return exactly `BLOCKED: TESTING_NOT_PASSED`.
 
 Inspect:
 
