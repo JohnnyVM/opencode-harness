@@ -12,17 +12,27 @@ def source_root():
 
 
 def _entries(source):
-    entries = [(source / "opencode.jsonc", Path("opencode.jsonc"))]
-    categories = (("agents", "*.md", False), ("skills", None, True), ("commands", "*.md", False))
-    for category, pattern, directories_only in categories:
-        directory = source / category
-        if not directory.is_dir():
-            continue
-        candidates = directory.iterdir() if pattern is None else directory.glob(pattern)
-        for candidate in sorted(candidates, key=lambda path: path.name):
-            if (candidate.is_dir() if directories_only else candidate.is_file()):
-                entries.append((candidate, Path(category) / candidate.name))
-    return [entry for entry in entries if entry[0].is_file() or entry[0].is_dir()]
+    entries = []
+
+    config = source / "opencode.jsonc"
+    if config.is_file():
+        entries.append((config, Path(config.name)))
+
+    for path in sorted((source / "agents").glob("*.md")):
+        if path.is_file():
+            entries.append((path, Path("agents") / path.name))
+
+    skills = source / "skills"
+    if skills.is_dir():
+        for path in sorted(skills.iterdir()):
+            if path.is_dir() and (path / "SKILL.md").is_file():
+                entries.append((path, Path("skills") / path.name))
+
+    for path in sorted((source / "commands").glob("*.md")):
+        if path.is_file():
+            entries.append((path, Path("commands") / path.name))
+
+    return entries
 
 
 def install(source, home, dry_run=False):
@@ -39,6 +49,7 @@ def install(source, home, dry_run=False):
 
     failed = False
     for source_path, relative_destination in entries:
+        target = source_path.resolve()
         destination = destination_root / relative_destination
         if os.path.lexists(destination):
             print(f"warning: skip existing destination {destination}")
@@ -49,9 +60,9 @@ def install(source, home, dry_run=False):
                 print(f"mkdir {parent}")
                 if not dry_run:
                     parent.mkdir(parents=True, exist_ok=True)
-            print(f"link {destination} -> {source_path.resolve()}")
+            print(f"link {destination} -> {target}")
             if not dry_run:
-                os.symlink(str(source_path.resolve()), destination)
+                os.symlink(str(target), destination)
         except OSError as error:
             print(f"error: cannot install {destination}: {error}", file=sys.stderr)
             failed = True

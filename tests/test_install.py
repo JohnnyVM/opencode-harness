@@ -18,6 +18,7 @@ class InstallerTests(unittest.TestCase):
         (source / "agents" / "z.md").write_text("z")
         (source / "agents" / "ignore.txt").write_text("ignore")
         (source / "commands" / "a.md").write_text("a")
+        (source / "skills" / "alpha" / "SKILL.md").write_text("alpha skill")
         return source
 
     def test_clean_install_creates_absolute_links(self):
@@ -35,6 +36,20 @@ class InstallerTests(unittest.TestCase):
             for path, target in expected.items():
                 self.assertTrue(path.is_symlink())
                 self.assertEqual(os.readlink(path), str(target.resolve()))
+
+    def test_skill_directory_without_skill_file_is_ignored(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source = self.make_source(temp)
+            beta = source / "skills" / "beta"
+            beta.mkdir()
+            entries = install._entries(source)
+            self.assertIn(source / "skills" / "alpha", dict(entries))
+            self.assertNotIn(beta, dict(entries))
+
+            home = Path(temp) / "home"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install.install(source, home), 0)
+            self.assertFalse((home / ".config" / "opencode" / "skills" / "beta").exists())
 
     def test_source_resolution_does_not_depend_on_cwd(self):
         with tempfile.TemporaryDirectory() as home, tempfile.TemporaryDirectory() as outside:

@@ -48,6 +48,16 @@ not introduce numeric revision migrations.
 - Faithful approval record and date after approval.
 - Latest package-changing revision and whether it supersedes prior approval.
 
+## Implementation Package execution identity
+
+- `target_repository`: the exact GitHub `<owner>/<repository>` in which
+  implementation will run. It must equal the repository owning this issue.
+- `implementation_branch`: the mandatory exact implementation branch. It must
+  not be inferred from the default branch.
+
+The approved implementation branch must be distinct from the resolved default
+branch.
+
 ## Problem Statement
 
 The problem that the user is facing, from the user's perspective.

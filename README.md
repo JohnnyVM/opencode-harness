@@ -17,7 +17,7 @@ repository targets:
 
 - `opencode/opencode.jsonc`
 - each `opencode/agents/*.md`
-- each `opencode/skills/<skill>/`
+- each `opencode/skills/<skill>/` that contains a `SKILL.md` file
 - each `opencode/commands/*.md`
 
 It skips existing destinations rather than replacing them. Back up and remove

@@ -36,14 +36,15 @@ supplied all of these inputs:
 - known remaining risks
 
 If the Tester has not returned `PASS`, do not review and return exactly
-`BLOCKED: TESTING_NOT_PASSED`.
+`BLOCKED: TESTING_NOT_PASSED`. Reserve this result for missing or invalid
+Tester evidence only.
 
-Before reviewing, run `git rev-parse HEAD`. The supplied review commit and
-current `HEAD` must be identical. A pre-commit local Tester report identifies
-its supplied branch/current-`HEAD` context and is not required to claim the
-later implementation commit. When remote verification applies, every remote
-Tester result must identify the supplied review commit. If these conditions do
-not hold, return exactly `BLOCKED: TESTING_NOT_PASSED`.
+Before reviewing, run `git rev-parse HEAD`. If the supplied review commit and
+current `HEAD` differ, return exactly `BLOCKED: HEAD_MISMATCH`. A pre-commit
+local Tester report identifies its supplied branch/current-`HEAD` context and
+is not required to claim the later implementation commit. When remote
+verification applies, every remote Tester result must identify the supplied
+review commit; otherwise return exactly `BLOCKED: TESTING_NOT_PASSED`.
 
 Inspect:
 

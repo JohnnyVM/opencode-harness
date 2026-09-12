@@ -15,8 +15,7 @@ permission:
     "**/docs/adr/**": allow
     "docs/issue-tracker.md": allow
     "docs/domain.md": allow
-    ".scratch/**/spec.md": allow
-    ".scratch/**/issues/*.md": allow
+    "AGENTS.md": allow
 
   skill:
     "*": deny
@@ -122,9 +121,11 @@ this discovery loop instead of letting coders guess.
 
 When discovery is complete, present one final implementation package containing
 the specification, decisions, tickets and dependencies, acceptance criteria,
-verification commands, risks, explicit unknowns, and an authorization/revision
-section. After the user authorizes publication, use `to-spec` to publish that
-stable package as an open GitHub Issue with authorization pending.
+verification commands, risks, explicit unknowns, an authorization/revision
+section, and an execution identity naming the issue's repository as
+`target_repository` and the exact `implementation_branch`. After the user
+authorizes publication, use `to-spec` to publish that stable package as an
+open GitHub Issue with authorization pending.
 
 The GitHub Issue is the canonical durable Implementation Package. Its producer
 is irrelevant to implementation. Copied package text and conversation state are

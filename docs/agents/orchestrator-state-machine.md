@@ -50,6 +50,17 @@ reference uses the current repository inferred unambiguously from its Git
 remotes; explicit references and URLs use their named repository. Copied
 package text or an out-of-band approval record is not authoritative.
 
+Every package contains one explicit execution-identity interface:
+
+```text
+target_repository: <owner>/<repository>
+implementation_branch: <exact branch name>
+```
+
+`target_repository` must equal the repository owning the resolved GitHub issue.
+The implementation branch is mandatory, never inferred, and distinct from the
+resolved default branch.
+
 Resolve short and qualified references by parsing the issue number and invoking
 `gh issue view <number> --repo <owner>/<repository> --json ...`. A URL may be
 passed directly to `gh issue view <url> --json ...`. The qualified
@@ -94,14 +105,16 @@ TESTING -- CONFIGURATION --> BLOCKED_SPEC
 TESTING -- first INFRASTRUCTURE after concrete correction --> TESTING
 TESTING -- INFRASTRUCTURE after corrected retry --> BLOCKED_IMPLEMENTATION
 TESTING -- correction budget exhausted --> BLOCKED_IMPLEMENTATION
-DEBUGGING -- code_or_test_problem --> IMPLEMENTING
-DEBUGGING -- design_or_spec_problem --> BLOCKED_SPEC
-DEBUGGING -- environment_problem --> BLOCKED_IMPLEMENTATION
-DEBUGGING -- inconclusive --> BLOCKED_DIAGNOSIS
+DEBUGGING -- CODE_PROBLEM --> IMPLEMENTING
+DEBUGGING -- TEST_PROBLEM --> IMPLEMENTING
+DEBUGGING -- DESIGN_SPEC_PROBLEM --> BLOCKED_SPEC
+DEBUGGING -- ENVIRONMENT_PROBLEM --> BLOCKED_IMPLEMENTATION
+DEBUGGING -- INCONCLUSIVE --> BLOCKED_DIAGNOSIS
 DEBUGGING -- investigation budget exhausted --> BLOCKED_DIAGNOSIS
-REVIEWING -- changes_required --> IMPLEMENTING
-REVIEWING -- debugging_required --> DEBUGGING
-REVIEWING -- testing_not_passed --> TESTING
+REVIEWING -- CHANGES_REQUIRED --> IMPLEMENTING
+REVIEWING -- DEBUGGING_REQUIRED --> DEBUGGING
+REVIEWING -- TESTING_NOT_PASSED --> TESTING
+REVIEWING -- HEAD_MISMATCH --> BLOCKED_OPERATION
 REVIEWING -- correction budget exhausted --> BLOCKED_IMPLEMENTATION
 REVIEWING -- reviewer approved and Cleaner PASS and final guards pass --> DONE
 REVIEWING -- first Cleaner simplification NOT_PASS --> IMPLEMENTING
@@ -209,6 +222,13 @@ untracked files block admission; ignored files are permitted. Detached `HEAD`,
 unresolved default branch, active operations, locks, and ambiguous
 ref/index/metadata states also block admission.
 
+During admission, verify that at least one current-worktree remote
+unambiguously matches `target_repository`. No matching remote is an operational
+wrong-checkout condition routed non-destructively to `BLOCKED_OPERATION`. A
+package identity conflict with the issue repository, or an implementation
+branch equal to the resolved default branch, is `BLOCKED_SPEC` during
+validation before coding.
+
 On the default branch, the Orchestrator records its exact baseline, then creates
 and switches to the approved implementation branch before coding. A clean
 approved non-default branch is used as-is. The admitted implementation branch
@@ -265,10 +285,11 @@ the exact retry or operator action.
 
 ## Budgets
 
-For each failure signature reported by a Testing Sweep, allow at most two
+For each failure signature first encountered in coder focused checks, a Testing
+Sweep, or Code Review, allow at most two
 Debugger investigations, two consolidated correction attempts after initial
 implementation, one qwen-to-gpt reassignment, and one infrastructure retry.
 The implementation also has one Cleaner correction budget. Reset a budget only
-for a materially different Tester failure signature or confirmed root cause.
+for a materially different failure signature or confirmed root cause.
 The Cleaner correction budget never resets during an implementation, including
 for materially different concerns.

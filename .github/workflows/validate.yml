@@ -1,0 +1,38 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      OPENCODE_CONFIG: ${{ github.workspace }}/opencode/opencode.jsonc
+      OPENCODE_CONFIG_DIR: ${{ github.workspace }}/opencode
+      OPENCODE_CONFIG_CONTENT: '{"mcp":{"playwright":{"enabled":false}}}'
+      OPENCODE_DISABLE_MODELS_FETCH: "1"
+      OPENCODE_DISABLE_LSP_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+      - run: npm install --global opencode-ai@1.18.30
+      - run: PYTHONDONTWRITEBYTECODE=1 python3 -B -m unittest discover -s tests -v
+      - name: Validate native OpenCode configuration
+        run: opencode --pure debug config
+      - name: Validate every configured agent loads
+        shell: bash
+        run: |
+          set -euo pipefail
+          for agent_file in opencode/agents/*.md; do
+            agent_file=${agent_file##*/}
+            opencode --pure debug agent "${agent_file%.md}"
+          done
