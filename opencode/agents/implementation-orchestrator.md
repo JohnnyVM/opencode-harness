@@ -18,6 +18,7 @@ permission:
     "code-reviewer": allow
   bash:
     "*": deny
+    "git merge-base --is-ancestor *": allow
     "git status*": allow
     "git branch --show-current": allow
     "git symbolic-ref*": allow
@@ -69,12 +70,11 @@ them to resolve it with `spec-design`.
 
 ## Guarded repository admission and lifecycle
 
-Before `PLANNING`, if the run will create an implementation branch from the
-original/default branch, capture the original branch/ref and exact tip baseline
+Before `PLANNING`, if the run is the default branch it will create an implementation
+branch from the original/default branch, capture the original branch/ref and exact tip baseline
 before creating that branch, then record an admission snapshot.
-Admit only a clean worktree:
-staged, unstaged, and untracked files block admission; ignored files are
-permitted. Reject detached HEAD, unresolved default branch, active or
+Admit only a clean branch without staged, unstaged, and untracked files block admission;
+ignored files are permitted. Reject detached HEAD, unresolved default branch, active or
 incomplete operations, locks, and ambiguous branch, ref, index, or metadata
 states. Do not infer or repair ambiguity. On the default branch, create and
 switch to the approved implementation branch; otherwise keep a clean usable
@@ -94,7 +94,9 @@ or metadata. Coders must not run direct Git commands or modify `.git`; this is
 accidental protection, not a sandbox. The Orchestrator alone explicitly stages
 and makes meaningful
 issue-linked, non-empty commits whose messages identify the approved issue or
-ticket, after unit checks pass. Compare guarded snapshots around
+ticket, after the Tester reports the required checks pass. Coders and the
+Orchestrator must not run focused or full test commands; the Tester agent owns
+test execution and verification. Compare guarded snapshots around
 handoffs, commits, and verification. Unexpected branch/ref/index/metadata,
 untracked, or out-of-scope drift stops non-destructively, preserves changes,
 and reports `BLOCKED_OPERATION`. Baseline operations are guarded
