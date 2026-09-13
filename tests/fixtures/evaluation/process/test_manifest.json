@@ -1,0 +1,12 @@
+{
+    "schema_version": 1,
+    "case_id": "guadalbot-46",
+    "description": "test case for process execution",
+    "commands": [
+        {
+            "name": "test_echo",
+            "argv": ["echo", "hello_world"],
+            "cwd": "."
+        }
+    ]
+}

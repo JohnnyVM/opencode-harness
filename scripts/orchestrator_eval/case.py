@@ -7,7 +7,7 @@ manifests are data, and paths in them are confined to the source repository.
 from dataclasses import dataclass
 from enum import Enum, IntEnum
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 
@@ -51,7 +51,8 @@ def _safe_relative(value: Any, label: str) -> str:
     if "\x00" in value:
         raise CaseError(f"{label} must be a repository-relative path")
     path = Path(value)
-    if path.is_absolute() or ".." in path.parts:
+    windows_path = PureWindowsPath(value)
+    if path.is_absolute() or windows_path.is_absolute() or ".." in path.parts or ".." in windows_path.parts:
         raise CaseError(f"{label} must be a repository-relative path")
     return value
 
@@ -98,12 +99,13 @@ class EvaluationCase:
     schema_version: int
     commands: tuple[CommandRecord, ...]
     description: str = ""
+    assets: tuple[str, ...] = ()
 
     @classmethod
     def from_mapping(cls, raw: Any, expected_id: str) -> "EvaluationCase":
         if not isinstance(raw, dict):
             raise CaseError("case manifest must be an object")
-        allowed = {"schema_version", "case_id", "description", "commands"}
+        allowed = {"schema_version", "case_id", "description", "commands", "assets"}
         unknown = set(raw) - allowed
         if unknown:
             raise CaseError(f"unknown case key(s): {', '.join(sorted(unknown))}")
@@ -117,13 +119,24 @@ class EvaluationCase:
         description = raw.get("description", "")
         if not isinstance(description, str):
             raise CaseError("case description must be a string")
-        return cls(expected_id, 1, tuple(CommandRecord.from_mapping(x) for x in commands), description)
+        assets = raw.get("assets", [])
+        if not isinstance(assets, list):
+            raise CaseError("case assets must be a list")
+        safe_assets = tuple(_safe_relative(asset, "case asset") for asset in assets)
+        return cls(
+            expected_id,
+            1,
+            tuple(CommandRecord.from_mapping(x) for x in commands),
+            description,
+            safe_assets,
+        )
 
 
 def _manifest_path(source_repo: Path, case_id: str) -> Path:
     # Keep the accepted locations explicit; this also prevents a case name
     # from becoming an arbitrary filesystem path.
     for relative in (
+        Path("evaluations") / "implementation-orchestrator" / case_id / "manifest.json",
         Path("evaluation-cases") / case_id / "manifest.json",
         Path("cases") / case_id / "manifest.json",
         Path(".opencode-harness") / "cases" / case_id / "manifest.json",
@@ -156,12 +169,9 @@ def load_case(case_id: str, source_repo: str | Path) -> EvaluationCase:
         raise CaseError(f"cannot read case manifest {manifest}: {error}") from error
     case = EvaluationCase.from_mapping(raw, case_id)
     for command in case.commands:
-        cwd = root / command.cwd
-        # Existing path components must not be links.  A missing cwd is left
-        # for the eventual command runner to report, but it cannot smuggle a
-        # link into a case that happens to exist later.
-        existing = cwd
-        while not existing.exists() and existing != root:
-            existing = existing.parent
-        _reject_symlink_path(existing, root)
+        # Check the complete lexical path, including components that do not
+        # exist yet (a broken symlink must not become an escape later).
+        _reject_symlink_path(root / command.cwd, root)
+    for asset in case.assets:
+        _reject_symlink_path(root / asset, root)
     return case

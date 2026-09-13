@@ -1,0 +1,9 @@
+{
+  "case": "guadalbot-46",
+  "checks": [
+    {"name": "buy", "input": "Buy", "expected": "buy"},
+    {"name": "sale", "input": "Sale", "expected": "sale"},
+    {"name": "ambiguous", "input": "buy or sale", "expected": "ambiguous"},
+    {"name": "diagnostic", "input": "invalid", "expected": "ambiguous", "expected_stderr": true}
+  ]
+}

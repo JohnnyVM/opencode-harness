@@ -41,6 +41,10 @@ class EvaluationCliTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertIn("ready: guadalbot-46", output)
 
+        result, output, _ = self.invoke(["help", "run"])
+        self.assertEqual(result, 0)
+        self.assertIn("--discard-raw", output)
+
     def test_invalid_options_and_cases_return_usage(self):
         for argv in (
             ["--not-an-option"],

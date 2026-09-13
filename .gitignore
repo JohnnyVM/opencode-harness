@@ -1,1 +1,5 @@
 __pycache__
+evaluations/implementation-orchestrator/output/
+evaluations/implementation-orchestrator/**/result.json
+evaluations/implementation-orchestrator/**/result.md
+evaluations/implementation-orchestrator/**/raw.jsonl

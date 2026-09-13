@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "case_id": "guadalbot-46",
+  "description": "Offline evaluation contract for the Guadalbot #46 implementation package.",
+  "assets": [
+    "evaluations/implementation-orchestrator/guadalbot-46/package.json",
+    "evaluations/implementation-orchestrator/guadalbot-46/request.json",
+    "evaluations/implementation-orchestrator/guadalbot-46/oracle.py",
+    "evaluations/implementation-orchestrator/guadalbot-46/calibration.py",
+    "evaluations/implementation-orchestrator/guadalbot-46/fake_live_contract.py"
+  ],
+  "commands": [
+    {
+      "name": "oracle-calibration",
+      "argv": ["python3", "evaluations/implementation-orchestrator/guadalbot-46/calibration.py"],
+      "expected_status": "passed",
+      "expected_exit_code": 0
+    },
+    {
+      "name": "fake-live-contract",
+      "argv": ["python3", "evaluations/implementation-orchestrator/guadalbot-46/fake_live_contract.py"],
+      "expected_status": "passed",
+      "expected_exit_code": 0
+    }
+  ]
+}

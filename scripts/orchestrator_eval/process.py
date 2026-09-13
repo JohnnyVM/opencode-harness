@@ -30,13 +30,13 @@ def run_command(
 ) -> ProcessResult:
     """
     Execute a command with bounded argv supervision.
-    
+
     Args:
         command: CommandRecord describing the command to run
         cwd: Working directory for the command (defaults to current)
         env: Environment variables for the command (defaults to current)
         timeout: Timeout in seconds (None for no timeout)
-        
+
     Returns:
         ProcessResult with execution details
         
@@ -125,9 +125,18 @@ def run_command_with_evidence(
 ) -> ProcessResult:
     """
     Execute a command with evidence capture and proper timeout/interruption handling.
-    
+
     This version ensures that evidence is preserved even on timeout and that
     interruptions are handled correctly.
+
+    Args:
+        command: CommandRecord describing the command to run
+        cwd: Working directory for the command (defaults to current)
+        env: Environment variables for the command (defaults to current)
+        timeout: Timeout in seconds (None for no timeout)
+
+    Returns:
+        ProcessResult with execution details
     """
     # Validate command arguments
     if not command.argv:

@@ -1,0 +1,17 @@
+{
+  "issue_reference": "#46",
+  "title": "Guadalbot implementation package",
+  "tickets": ["T1", "T2", "T3", "T4", "T5", "T6"],
+  "objective": "Implement the supplied Guadalbot behavior and verify it with the repository's approved checks.",
+  "acceptance_criteria": [
+    "Buy and Sale requests produce their specified results.",
+    "Ambiguous requests are handled conservatively and visibly.",
+    "Diagnostic information remains available on stderr.",
+    "Equivalent implementations are accepted; simplistic fixes are rejected.",
+    "The implementation package is complete before execution begins."
+  ],
+  "verification_matrix": {
+    "local": ["unittest discovery", "compileall", "CLI help"],
+    "live": ["doctor", "run"]
+  }
+}

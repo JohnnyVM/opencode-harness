@@ -28,6 +28,12 @@ class EvaluationCaseTests(unittest.TestCase):
         self.assertEqual(case.commands[0].expected_status, Status.PASSED)
         self.assertEqual(case.commands[0].expected_exit_code, ExitCode.SUCCESS)
 
+    def test_loads_checked_in_implementation_orchestrator_case(self):
+        root = Path(__file__).parents[1]
+        case = load_case("guadalbot-46", root)
+        self.assertEqual(len(case.commands), 2)
+        self.assertEqual(len(case.assets), 5)
+
     def test_rejects_unknown_keys_and_invalid_values(self):
         cases = [
             {**self.valid_manifest(), "extra": True},
@@ -48,6 +54,21 @@ class EvaluationCaseTests(unittest.TestCase):
                 load_case("other", root)
         with self.assertRaises(CaseError):
             load_case("guadalbot-46", "/does/not/exist")
+
+    def test_rejects_asset_escape_and_symlink(self):
+        with tempfile.TemporaryDirectory() as root:
+            value = {**self.valid_manifest(), "assets": ["../outside"]}
+            self.write_manifest(root, value)
+            with self.assertRaises(CaseError):
+                load_case("guadalbot-46", root)
+
+        with tempfile.TemporaryDirectory() as root, tempfile.TemporaryDirectory() as outside:
+            root_path = Path(root)
+            (root_path / "link").symlink_to(outside, target_is_directory=True)
+            value = {**self.valid_manifest(), "assets": ["link/input.txt"]}
+            self.write_manifest(root, value)
+            with self.assertRaises(CaseError):
+                load_case("guadalbot-46", root)
 
 
 if __name__ == "__main__":

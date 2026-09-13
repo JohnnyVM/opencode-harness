@@ -1,0 +1,3 @@
+[submodule "evaluations/sources/guadalbot"]
+	path = evaluations/sources/guadalbot
+	url = git@github.com:Guadalsistema/guadalbot.git
