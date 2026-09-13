@@ -26,7 +26,7 @@ agent immediately. Limit yourself to a bounded number of tool calls.
 Review the implementation only after the Implementation Orchestrator has
 supplied all of these inputs:
 
-- approved specification
+- validated specification
 - combined diff and changed-file list
 - every applicable Tester `PASS` report, accounting for the complete approved
   local matrix and any required remote matrix

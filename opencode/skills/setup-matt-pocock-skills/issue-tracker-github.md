@@ -4,15 +4,16 @@ Issues and specifications live in GitHub Issues. Use `gh` for issue operations
 and infer the repository from the Git remote.
 
 An open GitHub Issue is the canonical durable Implementation Package. A copied
-package or out-of-band approval is not authoritative. Implementation accepts
+package is not authoritative. Implementation accepts
 one Issue Reference: `#<number>`, `<owner>/<repository>#<number>`, or a GitHub
-issue URL. The issue body contains the complete package and its semantic
-authorization/revision history. Its latest package-changing revision must be
-explicitly approved and persist `approved_by_user` or an equivalent plus a
-faithful approval record.
+issue URL. The issue body contains the complete package and its
+revision history when useful. A complete open issue is executable without a
+separate persisted user approval field, approval record, or
+authorization/revision section.
 
-Each package defines an explicit `target_repository` equal to the repository
-owning the issue. It may define an exact `implementation_branch`, which must be
+The Issue Reference determines the target repository. A package may repeat it
+as `target_repository`; if supplied, it must equal the repository owning the
+issue. It may define an exact `implementation_branch`, which must be
 distinct from the resolved default branch. If omitted, implementation must
 start from a clean checkout already on a non-default branch.
 
@@ -40,10 +41,9 @@ Pull requests are not an issue request surface. Specifications are published as
 issues, and dependencies are recorded with native issue dependencies when
 available or as `Blocked by: #<issue>` in the body.
 
-When a skill publishes work, create an open GitHub issue with authorization
-pending. After approval of that exact package, persist `approved_by_user` and a
-faithful approval record before returning the Issue Reference and
-`/implement <reference>`. A package-changing revision invalidates prior
-approval until approval of the revised package is persisted. When a skill
-fetches a ticket, treat the issue body as the canonical package content;
-comments are not intake authority.
+When a skill publishes work, create or update the open GitHub issue only after
+the user authorizes that external write, then return the Issue Reference and
+`/implement <reference>`. Record a package-changing revision in the issue
+before starting a new implementation run. When a skill fetches a ticket, treat
+the issue body as the canonical package content; comments are not intake
+authority.

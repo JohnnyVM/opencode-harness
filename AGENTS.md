@@ -22,7 +22,7 @@ This repository uses a single-context domain documentation layout. See `docs/dom
 ## Direct commands
 
 - `/implement <issue-reference>` selects the independent Implementation
-  Orchestrator to resolve and execute one approved open GitHub issue package.
+  Orchestrator to resolve and execute one complete open GitHub issue package.
 
 The `/setup-matt-pocock-skills` command is available for explicit user setup of
 repository conventions. It is triggered by the user directly, not automatically

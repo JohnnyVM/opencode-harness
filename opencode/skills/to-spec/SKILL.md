@@ -22,36 +22,27 @@ Prefer existing seams to new ones and use the highest stable seam possible. Do
 not introduce or ask the user to approve new seams during this synthesis step;
 record unresolved seam decisions under Explicit Unknowns.
 
-3. Write the spec using the template below. Publish it to the project issue
-tracker only when the user has explicitly authorized creating or updating that
-issue. Apply labels only when `docs/issue-tracker.md` explicitly defines them.
-For GitHub, the issue is the canonical Implementation Package. Publish a stable
-draft with authorization pending. After the user explicitly approves that exact
-published package, update the issue body to persist `approved_by_user` and a
-faithful approval record, then return its Issue Reference and
-`/implement <reference>`. Do not require copied package text or an out-of-band
-approval message for implementation.
+3. Write the spec using the template below. Publishing is an external write, so
+publish it to the project issue tracker only when the user has explicitly
+authorized creating or updating that issue. Apply labels only when
+`docs/issue-tracker.md` explicitly defines them.
+For GitHub, the issue is the canonical Implementation Package. Publish the
+stable package after the user authorizes creating or updating the issue, then
+return its Issue Reference and `/implement <reference>`. Do not require copied
+package text or an out-of-band approval message for implementation.
 
-Any package-changing update must append or update the latest revision record to
-invalidate prior approval until the revised package is explicitly approved and
-that approval is persisted. Non-package metadata edits do not create a package
-revision. Preserve semantically equivalent existing authorization records; do
-not introduce numeric revision migrations.
+Any package-changing revision must append or update the latest revision record so
+the durable issue describes the current package before a new implementation
+run. Non-package metadata edits do not create a package revision. Do not
+introduce numeric revision migrations.
 
 <spec-template>
 
-## Authorization and revision record
-
-- Current authorization: `pending_user_approval` until the exact published
-  package is approved, then `approved_by_user`.
-- Publication authorization and date.
-- Faithful approval record and date after approval.
-- Latest package-changing revision and whether it supersedes prior approval.
-
 ## Implementation Package execution identity
 
-- `target_repository`: the exact GitHub `<owner>/<repository>` in which
-  implementation will run. It must equal the repository owning this issue.
+- `target_repository`: optional. When supplied, the exact GitHub
+  `<owner>/<repository>` must equal the repository owning this issue. Otherwise
+  the Issue Reference determines the target repository.
 - `implementation_branch`: an optional exact implementation branch. If omitted,
   implementation must start from a clean checkout already on a non-default
   branch.

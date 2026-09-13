@@ -15,7 +15,7 @@ flowchart TD
     U([User request]) --> SD[Spec Design]
     SD -->|research and design support| R[Researcher]
     R --> SD
-    SD -->|approved GitHub issue package| O[Implementation Orchestrator]
+    SD -->|complete GitHub issue package| O[Implementation Orchestrator]
     U -->|/implement issue-reference| O
     O --> C[One bounded coder at a time]
     C --> FC{Focused development<br/>checks pass?}
@@ -37,7 +37,7 @@ flowchart TD
 
 Spec Design owns discovery and design, using `grilling` (or the existing
 `grill-with-docs` skill), research, domain modeling, and codebase design as
-needed. It publishes an approved package as a GitHub Issue and returns its
+needed. It publishes a complete package as a GitHub Issue and returns its
 Issue Reference. The explicit `/setup-matt-pocock-skills` command is separate
 from this flow and configures GitHub-only conventions after confirmation; it is
 not invoked automatically.
@@ -46,13 +46,13 @@ not invoked automatically.
 `implementation-orchestrator` is the independent primary agent selected by
 `/implement`. Plain text does not automatically switch primary agents.
 
-The Orchestrator independently resolves and validates exactly one approved
-Issue package before repository admission. Package identity includes the
-target repository and may constrain the exact implementation branch; otherwise
-a clean current non-default branch is admitted. It coordinates bounded coders,
-then delegates the complete verification matrix to Tester before the review
-stages. The candidate and implementation commit remain on that admitted
-branch; completion does not merge into the default branch.
+The Orchestrator independently resolves and validates exactly one complete
+Issue package before repository admission. The Issue Reference supplies the
+target repository, and the package may constrain the exact implementation
+branch; otherwise a clean current non-default branch is admitted. It coordinates
+bounded coders, then delegates the complete verification matrix to Tester before
+the review stages. The candidate and implementation commit remain on that
+admitted branch; completion does not merge into the default branch.
 
 Debugger is an Orchestrator leaf: it diagnoses a consolidated unclear failure
 and cannot delegate or implement. Code Reviewer runs only after applicable
@@ -80,7 +80,7 @@ supervision or an explicitly provisioned isolated environment if needed.
 | --- | --- | --- | --- | --- |
 | Spec Design | [`opencode/agents/spec-design.md`](../../opencode/agents/spec-design.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `github`, `setup-matt-pocock-skills` | May edit domain, ADR, and specification documents; production edits remain denied. |
 | Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Spec Design | None | Edit and delegation are denied; returns evidence, options, unknowns, and follow-up questions. |
-| Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Primary agent or `/implement` | None | Resolves one approved issue package before admission; edit denied; owns orchestration. |
+| Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Primary agent or `/implement` | None | Resolves one complete issue package before admission; edit denied; owns orchestration. |
 | coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | None | Bounded implementation worker for small mechanical tickets. |
 | coder-gpt | [`opencode/agents/coder-gpt.md`](../../opencode/agents/coder-gpt.md) | Orchestrator | None | Bounded implementation worker for complex or subtle tickets. |
 | Debugger | [`opencode/agents/debugger.md`](../../opencode/agents/debugger.md) | Orchestrator | None | Diagnostic-only leaf; disposable artifacts may only be written under `/tmp`. |

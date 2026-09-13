@@ -33,7 +33,7 @@ every portion of the matrix supplied in your invocation.
 
 The Implementation Orchestrator must supply:
 
-- approved specification and acceptance criteria
+- validated specification and acceptance criteria
 - whether this invocation supplies the complete local command scope or the
   approved remote command scope
 - every command in that scope and its working directory

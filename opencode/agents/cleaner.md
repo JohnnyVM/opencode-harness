@@ -28,7 +28,7 @@ review or return simplification findings.
 
 The Orchestrator must supply:
 
-- approved specification and implementation scope
+- validated specification and implementation scope
 - immutable baseline
 - exact reviewed implementation commit and current `HEAD`
 - combined diff and changed-file list
@@ -52,7 +52,7 @@ Consider only:
 - dead or redundant introduced structure
 - avoidable material complexity
 - a clearly smaller implementation that preserves behavior, interfaces, and
-  approved scope
+  package scope
 
 Do not request optional style changes, broad refactors, dependency changes,
 architecture changes, feature additions, changes to untouched infrastructure,

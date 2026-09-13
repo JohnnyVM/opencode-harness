@@ -102,7 +102,7 @@ class AgentContractTests(unittest.TestCase):
             [
                 "PACKAGE_REFERENCE_RECEIVED -> PACKAGE_RESOLVING",
                 "PACKAGE_REFERENCE_RECEIVED -- missing, malformed, or multiple reference --> BLOCKED_SPEC",
-                "PACKAGE_RESOLVING -- valid open latest-approved package --> SPEC_RECEIVED",
+                "PACKAGE_RESOLVING -- valid complete open package --> SPEC_RECEIVED",
                 "PACKAGE_RESOLVING -- retrieval or package validation failure --> BLOCKED_SPEC",
                 "SPEC_RECEIVED -> PLANNING",
                 "SPEC_RECEIVED -- specification problem --> BLOCKED_SPEC",
@@ -206,12 +206,15 @@ class AgentContractTests(unittest.TestCase):
             "PACKAGE_REFERENCE_RECEIVED -> PACKAGE_RESOLVING -> SPEC_RECEIVED -> PLANNING"
         )
         self.assertIn(intake, self.orchestrator_compact)
-        self.assertIn("Repository admission starts only after `SPEC_RECEIVED`", self.orchestrator)
+        self.assertIn(
+            "Repository admission starts only after `SPEC_RECEIVED`",
+            self.orchestrator_compact,
+        )
 
     def test_invalid_and_closed_issue_routes_block_before_mutation(self):
         orchestrator = self.orchestrator_compact
         self.assertIn(
-            "A copied package, copied approval record, missing or malformed reference, multiple references, and any other locator are not authoritative.",
+            "A copied package, missing or malformed reference, multiple references, and any other locator are not authoritative.",
             orchestrator,
         )
         self.assertIn(
@@ -223,17 +226,21 @@ class AgentContractTests(unittest.TestCase):
             orchestrator,
         )
         self.assertIn(
-            "Incomplete, unapproved, ambiguously approved, or stale-approved packages are `BLOCKED_SPEC` before repository admission or delegation.",
+            "Incomplete or contradictory packages are `BLOCKED_SPEC` before repository admission or delegation.",
             orchestrator,
         )
 
-    def test_latest_semantic_approval_is_required_without_numeric_migration(self):
+    def test_complete_open_issue_needs_no_persisted_approval_field(self):
         orchestrator = self.orchestrator_compact
-        self.assertIn("Authorization is semantic, not a numeric migration.", orchestrator)
-        self.assertIn("latest package-changing revision record", orchestrator)
-        self.assertIn("`approved_by_user` or an equivalent", orchestrator)
-        self.assertIn("Any later package-changing revision without persisted explicit approval invalidates prior approval.", orchestrator)
-        self.assertIn("faithful approval record", orchestrator)
+        self.assertIn(
+            "A complete open issue is executable without a separate persisted user approval field, approval record, or authorization/revision section.",
+            orchestrator,
+        )
+        self.assertNotIn("approved_by_user", orchestrator)
+        self.assertIn(
+            "Authorization for publication, remote workflows, deployment, or other external writes remains explicit",
+            orchestrator,
+        )
 
     def test_validated_issue_is_immutable_untrusted_package_data(self):
         orchestrator = self.orchestrator_compact
@@ -255,17 +262,16 @@ class AgentContractTests(unittest.TestCase):
             self.orchestrator_compact,
         )
 
-    def test_spec_design_persists_approval_and_returns_durable_handoff(self):
+    def test_spec_design_publishes_and_returns_durable_handoff(self):
         spec_design = compact(self.spec_design)
         self.assert_in_order(
             spec_design,
-            "publish that stable package as an open GitHub Issue with authorization pending",
-            "On affirmative approval, update the issue body before handoff",
-            "`approved_by_user` or a semantic equivalent",
+            "publish that stable package as an open GitHub Issue",
             "Return the durable Issue Reference and `/implement <reference>`",
         )
-        self.assertIn("Every package-changing revision invalidates prior approval", spec_design)
+        self.assertIn("Every package-changing revision invalidates prior implementation snapshots", spec_design)
         self.assertIn("do not duplicate the package", spec_design)
+        self.assertNotIn("approved_by_user", spec_design)
 
     def test_publication_docs_share_the_canonical_package_contract(self):
         publication_docs = (
@@ -281,9 +287,9 @@ class AgentContractTests(unittest.TestCase):
             document = compact(read(path))
             self.assertIn("canonical", document)
             self.assertIn("Implementation Package", document)
-            self.assertIn("approved_by_user", document)
             self.assertIn("package-changing revision", document)
-            self.assertIn("approval", document)
+            self.assertNotIn("approved_by_user", document)
+            self.assertIn("external write", document)
 
     def test_package_producer_and_consumer_share_execution_identity(self):
         contracts = (
@@ -301,6 +307,22 @@ class AgentContractTests(unittest.TestCase):
 
         self.assertNotIn("comments,url", self.orchestrator)
         self.assertIn("operational wrong-checkout condition", self.orchestrator)
+
+    def test_issue_reference_supplies_target_repository_identity(self):
+        orchestrator = self.orchestrator_compact
+        self.assertIn(
+            "The repository resolved from the Issue Reference is the effective target repository",
+            orchestrator,
+        )
+        self.assertIn(
+            "The package may repeat this identity as `target_repository`, but it is optional.",
+            orchestrator,
+        )
+        self.assertIn(
+            "If supplied, it must match the effective target repository",
+            orchestrator,
+        )
+        self.assertNotIn("an explicit `target_repository`", orchestrator)
 
     def test_clean_non_default_branch_can_supply_implementation_identity(self):
         self.assertIn(

@@ -1,23 +1,24 @@
 # OpenCode Harness
 
-This repository defines an OpenCode configuration for turning an approved
+This repository defines an OpenCode configuration for turning a complete
 specification into a guarded, tested, and reviewed implementation.
 
 ## Language
 
 **Spec Design**:
-The user-facing agent that resolves requirements and produces an approved
+The user-facing agent that resolves requirements and produces a complete
 Implementation Package.
 _Avoid_: Lead, orchestrator
 
 **Implementation Package**:
 The immutable validated snapshot of an open GitHub Issue containing the
-approved specification, tickets, dependencies, acceptance criteria,
-Verification Matrix, risks, unknowns, and latest approval record used for one
-implementation run. Its execution identity includes an explicit
-`target_repository` equal to the repository owning the issue. An optional exact
-`implementation_branch` may constrain execution; otherwise a clean current
-non-default branch becomes the admitted implementation branch.
+complete specification, tickets, dependencies, acceptance criteria,
+Verification Matrix, risks, and unknowns used for one implementation run. Its
+Issue Reference determines the target repository; an
+optional `target_repository` may repeat that identity as a consistency
+assertion. An optional exact `implementation_branch` may constrain execution;
+otherwise a clean current non-default branch becomes the admitted
+implementation branch.
 _Avoid_: Prompt, task description, copied package
 
 **Issue Reference**:

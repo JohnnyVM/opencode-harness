@@ -1,5 +1,5 @@
 ---
-description: Independently executes approved implementation packages with one delegated worker at a time
+description: Independently executes complete implementation packages with one delegated worker at a time
 mode: primary
 model: openai/gpt-5.6-terra
 
@@ -83,8 +83,8 @@ Start in `PACKAGE_REFERENCE_RECEIVED`. Accept exactly one of:
 The issue-reference input must match one accepted reference form in full. When
 the user manually selects this primary agent, also accept the exact bounded
 prompt `implement <issue-reference>`. Do not extract a reference from other
-prose. A copied package, copied approval record, missing or malformed reference,
-multiple references, and any other locator are not authoritative. Return
+prose. A copied package, missing or malformed reference, multiple references,
+and any other locator are not authoritative. Return
 `BLOCKED_SPEC` with the accepted forms and exact observed failure. Before
 package validation, do not begin repository admission, change a branch, commit,
 or delegate. Use only the read-only Git remote inspection needed to resolve a
@@ -103,6 +103,13 @@ Normalize retrieval without treating the qualified form as native `gh` syntax:
 Ambiguous current-repository inference is an unresolvable reference; do not
 guess among remotes.
 
+The repository resolved from the Issue Reference is the effective target
+repository: the inferred current repository for `#<number>`, or the repository
+named by a qualified reference or URL. The package may repeat this identity as
+`target_repository`, but it is optional. If supplied, it must match the
+effective target repository; a malformed or mismatching value is
+`BLOCKED_SPEC`.
+
 Enter `PACKAGE_RESOLVING` and retrieve the issue's number, title, body, state,
 and URL. Retrieval is read-only and does not require user
 confirmation. Missing, inaccessible, or unresolvable issues are `BLOCKED_SPEC`.
@@ -110,25 +117,18 @@ The issue must be open; a closed issue is `BLOCKED_SPEC` before repository
 admission or Worker delegation.
 
 Validate the issue body as a complete Implementation Package. It must contain
-an approved specification identifier or heading, decisions and constraints,
+a specification identifier or heading, decisions and constraints,
 tickets and dependencies, acceptance criteria, required local Verification
 Matrix commands and working directories, remote commands and prerequisites or
-an approved `Not applicable` rationale, known risks, explicit unknowns, and an
-authorization/revision section, and an explicit `target_repository`. A missing,
-malformed, or mismatching `target_repository` is `BLOCKED_SPEC` during
-validation; it must equal the repository owning the resolved issue. An exact
-`implementation_branch` may be supplied, but it is not required when admission
-starts on a clean non-default branch.
-
-Authorization is semantic, not a numeric migration. The latest
-package-changing revision record must unambiguously contain
-`approved_by_user` or an equivalent and a faithful approval record. If there
-was no package-changing revision after initial approval, that initial approval
-is the latest record. Any later package-changing revision without persisted
-explicit approval invalidates prior approval. Incomplete, unapproved,
-ambiguously approved, or stale-approved packages are `BLOCKED_SPEC` before
+a documented `Not applicable` rationale, known risks, and explicit unknowns. An
+exact `implementation_branch` may be supplied, but it is not required when
+admission starts on a clean non-default branch. A complete open issue is
+executable without a separate persisted user approval field, approval record,
+or authorization/revision section. Authorization for publication, remote
+workflows, deployment, or other external writes remains explicit and scoped as
+defined below. Incomplete or contradictory packages are `BLOCKED_SPEC` before
 repository admission or delegation. Do not request or accept an out-of-band
-package or approval message as a substitute.
+package as a substitute.
 
 After successful validation, freeze the resolved issue body and identifying
 metadata as the immutable Implementation Package snapshot for this run, then
@@ -146,7 +146,7 @@ authorization.
 # Guarded repository lifecycle
 
 Before `PLANNING`, verify that at least one current-worktree Git remote
-unambiguously identifies `target_repository`. No matching remote is an
+unambiguously identifies the effective target repository. No matching remote is an
 operational wrong-checkout condition: route it non-destructively to
 `BLOCKED_OPERATION` and preserve the worktree. Then resolve and capture the
 default branch/ref and exact tip as
@@ -197,8 +197,8 @@ PACKAGE_REFERENCE_RECEIVED -> PACKAGE_RESOLVING -> SPEC_RECEIVED -> PLANNING
 
 `PACKAGE_REFERENCE_RECEIVED` goes to `BLOCKED_SPEC` for a missing, malformed,
 or multiple reference. `PACKAGE_RESOLVING` goes to `BLOCKED_SPEC` for retrieval
-failure or a closed, incomplete, unapproved, ambiguously approved, or
-stale-approved issue. Repository admission starts only after `SPEC_RECEIVED`.
+failure or a closed, incomplete, or contradictory issue. Repository admission
+starts only after `SPEC_RECEIVED`.
 
 The implementation main path remains exactly:
 
@@ -267,7 +267,7 @@ After all initial tickets are complete:
 2. Confirm coder reports contain actual focused commands and exit statuses.
 3. Capture the guarded branch/ref/index/worktree/untracked/metadata snapshot.
 4. Invoke Tester with every required local Verification Matrix command and
-   working directory, the approved acceptance criteria, and the supplied
+   working directory, the package acceptance criteria, and the supplied
    branch/current-`HEAD` context.
 5. Compare the guarded snapshot after Tester returns.
 
@@ -293,7 +293,7 @@ exact operator action. Tester cannot invoke Debugger; the Orchestrator owns all
 routing. Any correction invalidates relevant Tester and review evidence and
 requires the complete local matrix again.
 
-A local `PASS` permits explicit staging of only package-approved paths and one
+A local `PASS` permits explicit staging of only package-scoped paths and one
 meaningful, non-empty, issue-linked combined initial implementation commit.
 Commit hooks do not replace Tester evidence. Commit failure or unexpected
 pre/post drift is `BLOCKED_OPERATION` and preserves the candidate and repository
@@ -340,7 +340,7 @@ Never create a speculative coder ticket.
 # Review, Cleaner, and completion
 
 Invoke Code Reviewer only after every applicable Tester invocation is `PASS`.
-Supply the approved package, combined changed-file list and diff, current
+Supply the validated package, combined changed-file list and diff, current
 implementation commit, every local and remote Tester report, coder reports,
 Debug Reports and corrections, and known risks. The local pre-commit report is
 not required to name the later commit. When remote verification applies, its
@@ -356,7 +356,7 @@ returns to `TESTING` and is not a verdict. `BLOCKED: HEAD_MISMATCH` routes to
 prior Tester evidence and review approval.
 
 After `Verdict: APPROVED`, remain in `REVIEWING` and invoke `cleaner`. Supply
-the approved specification and scope, immutable baseline, exact reviewed commit
+the validated specification and package scope, immutable baseline, exact reviewed commit
 and current `HEAD`, combined diff, Tester reports, Reviewer approval, known
 risks, and intentionally deferred or out-of-scope work.
 
@@ -375,7 +375,7 @@ correction budget.
 
 On the `REVIEWING` to `DONE` edge, verify all applicable Tester reports are
 `PASS`, current `HEAD` is the commit approved by Code Reviewer, Cleaner returned
-`PASS`, the current branch is the approved implementation branch, the worktree
+`PASS`, the current branch is the admitted implementation branch, the worktree
 is clean, the original/default branch remains exactly at its admitted baseline,
 and any explicitly authorized remote ref contains only the expected published
 implementation commit. Any mismatch is `BLOCKED_OPERATION`; preserve the

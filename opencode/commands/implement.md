@@ -1,5 +1,5 @@
 ---
-description: Resolve and implement one approved open GitHub issue package
+description: Resolve and implement one complete open GitHub issue package
 agent: implementation-orchestrator
 subtask: false
 ---
