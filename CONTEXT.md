@@ -5,6 +5,21 @@ specification into a guarded, tested, and reviewed implementation.
 
 ## Language
 
+**Evaluation Case**:
+A versioned, repository-local manifest describing one reproducible orchestrator
+evaluation. Version 1 currently supports only `guadalbot-46`.
+
+**Command Record**:
+One strictly validated argv and expectation record in an Evaluation Case.
+
+**Evaluation Status**:
+The finite status value reported for an evaluation or command; it is not a
+free-form lifecycle or plugin extension point.
+
+**Exit Code**:
+The process result represented by a non-negative integer, with `0` meaning
+success and `2` reserved for invalid CLI input or case data.
+
 **Spec Design**:
 The user-facing agent that resolves requirements and produces a complete
 Implementation Package.

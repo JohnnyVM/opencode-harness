@@ -92,6 +92,10 @@ During implementation:
 
 Forbidden actions:
 - Don't write summaries of the changes in files
+- Don't create repository summary, report, or handoff files such as
+  `IMPLEMENTATION_SUMMARY.md` or `SUMMARY.md` unless the assigned ticket
+  explicitly requires that exact file. Return the summary only in the task
+  result.
 - Don't modify documentation that is not specifically requested by the orchestrator
 
 Verify the result using the commands specified by the orchestrator.

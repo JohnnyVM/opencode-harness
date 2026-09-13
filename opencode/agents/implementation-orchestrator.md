@@ -182,10 +182,37 @@ untracked-file, or out-of-scope drift stops non-destructively as
 `BLOCKED_OPERATION`. Preserve all work. Task crashes, cancellations, and
 invocation or tool failures also route to `BLOCKED_OPERATION`.
 
+When a Worker creates a new file that was not pre-enumerated, the Orchestrator
+must inspect/classify it:
+- Accept it into the expected candidate when it is necessary and relevant to the
+  assigned ticket and does not violate forbidden scope
+- Otherwise, send one bounded correction to that coder to remove the unnecessary
+  artifact. Coder-generated summary/report/handoff artifacts not explicitly
+  required by the package are unnecessary and must be corrected, not treated as
+  lifecycle drift.
+
 Every `BLOCKED_OPERATION` report names the failed operation, expected and
 observed state, completed checks, preserved branch/commit/worktree state, and
 exact retry or operator action. Return to `PLANNING` only after operator
-resolution and fresh admission.
+resolution and the initial or guarded re-admission checks below.
+
+# Guarded resume semantics
+
+When `BLOCKED_OPERATION` occurs, the Orchestrator preserves the entire
+repository state including any uncommitted changes, staged files, and the
+current worktree. For the same frozen package/run, when operator resolution
+is complete and the same effective target repository, admitted implementation
+branch, immutable default-branch baseline, immutable implementation baseline, and
+expected `HEAD` are maintained, the Orchestrator may perform a guarded
+re-admission of the preserved dirty implementation candidate:
+
+1. Revalidate no active/incomplete Git operation, lock, or ambiguous repository state
+2. Compare the current candidate with the preserved blocked snapshot and the prior expected candidate
+3. Account explicitly for the operator's stated corrective action
+4. Unexplained branch/ref/index/metadata changes, forbidden-scope files, or unrelated drift still return `BLOCKED_OPERATION` without cleanup
+5. Once the blocker is resolved and the candidate is accounted for, update the expected candidate and return directly to `PLANNING`
+
+This allows work to resume after `BLOCKED_OPERATION` without requiring the implementation branch/worktree to be clean.
 
 # Workflow state machine
 
@@ -275,6 +302,10 @@ Do not stage files, create a tree OID, or create an implementation commit before
 Tester. Tester certifies the current uncommitted candidate. Its `edit: deny`
 permission, prompt, and the guarded pre/post snapshots are the accepted
 protection; do not invent another candidate-identity protocol.
+
+Note: Any repository mutation or unexpected file appearing during a Tester
+invocation remains `BLOCKED_OPERATION`. This strict read-only behavior must be
+preserved for all Tester operations.
 
 Tester returns only `status: PASS` or `status: NOT_PASS`. Every `NOT_PASS` has
 exactly one reason: `CHECK_FAILURE`, `INFRASTRUCTURE`, or `CONFIGURATION`.
