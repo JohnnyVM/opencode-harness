@@ -99,7 +99,18 @@ class AgentContractTests(unittest.TestCase):
         self.assertIn('"AGENTS.md": allow', spec_metadata)
         self.assertNotIn(".scratch", spec_metadata)
         self.assertIn("`--tracker github`", setup_skill)
+        self.assertIn("`--tracker local`", setup_skill)
         self.assertNotIn("--tracker markdown", setup_skill)
+        local_seed = read(
+            ROOT
+            / "opencode"
+            / "skills"
+            / "setup-matt-pocock-skills"
+            / "issue-tracker-local.md"
+        )
+        self.assertIn("`docs/issues/<issue-id>.md`", local_seed)
+        self.assertIn("state: open", local_seed)
+        self.assertIn("reject absolute paths", local_seed)
         self.assertFalse((AGENTS / "bug-finder.md").exists())
 
     def test_issue_reference_protocol_values_are_documented(self):

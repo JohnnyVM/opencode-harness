@@ -1,5 +1,5 @@
 ---
-description: Set up repository issue tracker and domain documentation conventions
+description: Set up local or GitHub issue tracking and domain documentation conventions
 agent: spec-design
 subtask: false
 ---
