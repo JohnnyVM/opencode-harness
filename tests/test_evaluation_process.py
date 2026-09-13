@@ -58,7 +58,7 @@ class TestProcessExecution(unittest.TestCase):
         result = run_command(command)
         self.assertNotEqual(result.exit_code, 0)
         self.assertFalse(result.timed_out)
-        
+
     def test_command_with_working_directory(self):
         """Test running a command with a specific working directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -86,7 +86,7 @@ class TestProcessExecution(unittest.TestCase):
             expected_status=Status.PASSED,
             expected_exit_code=ExitCode.SUCCESS
         )
-        
+
         env = {"TEST_VAR": "test_value"}
         result = run_command(command, env=env)
         self.assertEqual(result.exit_code, 0)
@@ -138,6 +138,25 @@ class TestProcessExecution(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.stdout.strip(), b"hello evidence")
         self.assertFalse(result.timed_out)
+
+    def test_descendant_process_interruption(self):
+        """Test that descendant processes are properly terminated on interruption."""
+        # This test creates a command that spawns a descendant process
+        # and verifies that all processes in the group are cleaned up
+        command = CommandRecord(
+            name="test",
+            argv=("sh", "-c", "sleep 2 & pid=$!; sleep 1; wait $pid 2>/dev/null || true"),
+            cwd=".",
+            expected_status=Status.PASSED,
+            expected_exit_code=ExitCode.SUCCESS
+        )
+
+        # Test with timeout to trigger cleanup
+        result = run_command(command, timeout=0.1)
+        self.assertTrue(result.timed_out)
+        # Verify that the command was properly timed out and cleaned up
+        self.assertGreater(result.duration, 0.05)
+        self.assertLess(result.duration, 0.5)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,13 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from scripts.evaluate_orchestrator import main
+from scripts.orchestrator_eval.case import load_case
+from scripts.orchestrator_eval.environment import DoctorReport
+from scripts.orchestrator_eval.harness import HarnessResult
+from scripts.orchestrator_eval.report import write_report
 
 
 class EvaluationCliTests(unittest.TestCase):
@@ -39,7 +44,7 @@ class EvaluationCliTests(unittest.TestCase):
         self.assertIn("ok: guadalbot-46", output)
         result, output, _ = self.invoke(["run", "guadalbot-46", "--source-repo", str(self.root)])
         self.assertEqual(result, 0)
-        self.assertIn("ready: guadalbot-46", output)
+        self.assertIn("PASS: guadalbot-46", output)
 
         result, output, _ = self.invoke(["help", "run"])
         self.assertEqual(result, 0)
@@ -58,6 +63,37 @@ class EvaluationCliTests(unittest.TestCase):
                     with self.assertRaises(SystemExit) as raised:
                         main(argv)
                     self.assertEqual(raised.exception.code, 2)
+
+    def test_public_run_coordinates_doctor_and_writes_report(self):
+        calls = []
+        case = load_case("guadalbot-46", self.root)
+        report = DoctorReport(())
+        result = HarnessResult("PASS", 0, {"outcome": "PASS"})
+        output_root = self.root / "artifacts"
+        def fake_run(*args, **kwargs):
+            calls.append("run")
+            write_report(kwargs["output_root"], result.result)
+            return result
+        with patch("scripts.orchestrator_eval.cli.doctor_case",
+                                side_effect=lambda case_id, source: (calls.append("doctor") or (case, report))), \
+             patch("scripts.orchestrator_eval.cli.run_evaluation",
+                                side_effect=fake_run):
+            status, output, _ = self.invoke(["run", "guadalbot-46", "--source-repo", str(self.root),
+                                             "--output-root", str(output_root)])
+        self.assertEqual(status, 0)
+        self.assertEqual(calls, ["doctor", "run"])
+        self.assertIn("PASS: guadalbot-46", output)
+        self.assertTrue((output_root / "result.json").exists())
+
+    def test_public_run_propagates_failure_exit(self):
+        manifest = self.root / "evaluation-cases" / "guadalbot-46" / "manifest.json"
+        manifest.write_text(json.dumps({
+            "schema_version": 1, "case_id": "guadalbot-46",
+            "commands": [{"name": "fail", "argv": ["python", "-c", "raise SystemExit(7)"]}],
+        }), encoding="utf-8")
+        result, output, _ = self.invoke(["run", "guadalbot-46", "--source-repo", str(self.root)])
+        self.assertEqual(result, 1)
+        self.assertIn("FAIL: guadalbot-46", output)
 
 
 if __name__ == "__main__":

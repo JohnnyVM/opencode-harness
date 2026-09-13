@@ -4,7 +4,8 @@ import argparse
 from pathlib import Path
 import sys
 
-from .case import CaseError, load_case
+from .case import CaseError
+from .harness import doctor_case, run_evaluation
 
 
 def parser() -> argparse.ArgumentParser:
@@ -48,12 +49,19 @@ def main(argv=None) -> int:
         command_parser.print_help(sys.stderr)
         return 2
     try:
-        case = load_case(args.case, args.source_repo)
+        case, doctor_report = doctor_case(args.case, args.source_repo)
     except CaseError as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     if args.action == "doctor":
+        if not doctor_report.ok:
+            for check in doctor_report.failed:
+                print(f"failed: {check.name}: {check.detail}", file=sys.stderr)
+            return 2
         print(f"ok: {case.case_id} ({len(case.commands)} command(s))")
+        return 0
     else:
-        print(f"ready: {case.case_id} ({len(case.commands)} command(s))")
-    return 0
+        result = run_evaluation(case, args.source_repo, output_root=args.output_root,
+                                discard_raw=args.discard_raw)
+        print(f"{result.outcome}: {case.case_id}")
+        return result.exit_code

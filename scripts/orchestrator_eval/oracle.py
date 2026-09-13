@@ -26,14 +26,24 @@ class OracleResult:
     model: str | None = None
 
 
-def oracle_environment(env: Mapping[str, str] | None = None) -> dict[str, str]:
-    """Return an environment with credentials and publication variables removed."""
-    result = dict(os.environ if env is None else env)
-    needles = ("TOKEN", "PASSWORD", "SECRET", "CREDENTIAL", "API_KEY", "PRIVATE_KEY")
-    for key in list(result):
-        upper = key.upper()
-        if any(needle in upper for needle in needles):
-            result.pop(key, None)
+def oracle_environment(env: Mapping[str, str] | None = None,
+                       *, pythonpath: str | None = None) -> dict[str, str]:
+    """Build a minimal non-secret environment for the evaluator-owned Oracle.
+
+    This is process hygiene, not a security sandbox.  The Oracle still runs
+    from its own directory and receives only the verification copy as cwd.
+    """
+    source = dict(os.environ if env is None else env)
+    allowed = {"PATH", "PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV", "LANG",
+               "LC_ALL", "LC_CTYPE", "TZ", "SYSTEMROOT", "WINDIR"}
+    result = {key: value for key, value in source.items()
+              if key in allowed or key.startswith("LC_")}
+    # Never inherit host identity/configuration or publication credentials.
+    for key in ("HOME", "USERPROFILE", "SSH_AUTH_SOCK", "XDG_CONFIG_HOME",
+                "AWS_PROFILE", "GOOGLE_APPLICATION_CREDENTIALS"):
+        result.pop(key, None)
+    if pythonpath is not None:
+        result["PYTHONPATH"] = pythonpath
     result["OPENCODE_EVALUATION_FROZEN"] = "1"
     return result
 
@@ -55,7 +65,10 @@ def _decode(stdout: str) -> Mapping[str, Any]:
 
 def run_oracle(command: Sequence[str], request: Mapping[str, Any], *, verification_root: Path,
                timeout: float | None = None,
-               runner: Callable[..., subprocess.CompletedProcess] | None = None) -> OracleResult:
+               runner: Callable[..., subprocess.CompletedProcess] | None = None,
+               oracle_cwd: Path | None = None,
+               pythonpath: str | None = None,
+               env: Mapping[str, str] | None = None) -> OracleResult:
     """Run Oracle in the frozen copy and reduce its one-result response."""
     if not command:
         raise OracleProtocolError("Oracle command is empty")
@@ -63,8 +76,9 @@ def run_oracle(command: Sequence[str], request: Mapping[str, Any], *, verificati
     started = time.monotonic()
     try:
         completed = runner(list(command), input=json.dumps(request, sort_keys=True), text=True,
-                           capture_output=True, cwd=Path(verification_root),
-                           env=oracle_environment(), timeout=timeout, check=False)
+                           capture_output=True, cwd=Path(oracle_cwd or verification_root),
+                           env=oracle_environment(env, pythonpath=pythonpath),
+                           timeout=timeout, check=False)
         if completed.returncode != 0:
             raise OracleProtocolError("Oracle exited unsuccessfully")
         value = _decode(completed.stdout)

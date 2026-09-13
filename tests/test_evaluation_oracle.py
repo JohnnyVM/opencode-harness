@@ -21,7 +21,11 @@ class OracleTests(unittest.TestCase):
             return subprocess.CompletedProcess(argv, 0, '{"outcome":"PASS","model":"actual"}', "")
 
         old = os.environ.get("EVALUATION_API_TOKEN")
+        old_home = os.environ.get("HOME")
+        old_ssh = os.environ.get("SSH_AUTH_SOCK")
         os.environ["EVALUATION_API_TOKEN"] = "must-not-leak"
+        os.environ["HOME"] = "/host/home"
+        os.environ["SSH_AUTH_SOCK"] = "/host/ssh-agent"
         try:
             result = run_oracle(("oracle",), {"case": "x"},
                                 verification_root=Path("/frozen"), runner=fake)
@@ -30,9 +34,19 @@ class OracleTests(unittest.TestCase):
                 os.environ.pop("EVALUATION_API_TOKEN", None)
             else:
                 os.environ["EVALUATION_API_TOKEN"] = old
+            if old_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = old_home
+            if old_ssh is None:
+                os.environ.pop("SSH_AUTH_SOCK", None)
+            else:
+                os.environ["SSH_AUTH_SOCK"] = old_ssh
         self.assertEqual(result.model, "actual")
         self.assertEqual(seen["kwargs"]["cwd"], Path("/frozen"))
         self.assertNotIn("EVALUATION_API_TOKEN", seen["kwargs"]["env"])
+        self.assertNotIn("HOME", seen["kwargs"]["env"])
+        self.assertNotIn("SSH_AUTH_SOCK", seen["kwargs"]["env"])
         self.assertEqual(seen["kwargs"]["env"]["OPENCODE_EVALUATION_FROZEN"], "1")
 
     def test_protocol_fault_is_not_an_evaluation_failure(self):
