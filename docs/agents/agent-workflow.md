@@ -48,10 +48,11 @@ not invoked automatically.
 
 The Orchestrator independently resolves and validates exactly one approved
 Issue package before repository admission. Package identity includes the
-target repository and the exact implementation branch. It coordinates bounded
-coders, then delegates the complete verification matrix to Tester before the
-review stages. The candidate and implementation commit remain on that
-approved branch; completion does not merge into the default branch.
+target repository and may constrain the exact implementation branch; otherwise
+a clean current non-default branch is admitted. It coordinates bounded coders,
+then delegates the complete verification matrix to Tester before the review
+stages. The candidate and implementation commit remain on that admitted
+branch; completion does not merge into the default branch.
 
 Debugger is an Orchestrator leaf: it diagnoses a consolidated unclear failure
 and cannot delegate or implement. Code Reviewer runs only after applicable

@@ -52,10 +52,11 @@ not introduce numeric revision migrations.
 
 - `target_repository`: the exact GitHub `<owner>/<repository>` in which
   implementation will run. It must equal the repository owning this issue.
-- `implementation_branch`: the mandatory exact implementation branch. It must
-  not be inferred from the default branch.
+- `implementation_branch`: an optional exact implementation branch. If omitted,
+  implementation must start from a clean checkout already on a non-default
+  branch.
 
-The approved implementation branch must be distinct from the resolved default
+Any supplied implementation branch must be distinct from the resolved default
 branch.
 
 ## Problem Statement

@@ -123,9 +123,10 @@ When discovery is complete, present one final implementation package containing
 the specification, decisions, tickets and dependencies, acceptance criteria,
 verification commands, risks, explicit unknowns, an authorization/revision
 section, and an execution identity naming the issue's repository as
-`target_repository` and the exact `implementation_branch`. After the user
-authorizes publication, use `to-spec` to publish that stable package as an
-open GitHub Issue with authorization pending.
+`target_repository`. It may also constrain the exact `implementation_branch`;
+if omitted, implementation must start from a clean checkout already on a
+non-default branch. After the user authorizes publication, use `to-spec` to
+publish that stable package as an open GitHub Issue with authorization pending.
 
 The GitHub Issue is the canonical durable Implementation Package. Its producer
 is irrelevant to implementation. Copied package text and conversation state are

@@ -50,16 +50,18 @@ reference uses the current repository inferred unambiguously from its Git
 remotes; explicit references and URLs use their named repository. Copied
 package text or an out-of-band approval record is not authoritative.
 
-Every package contains one explicit execution-identity interface:
+Every package contains an explicit repository identity and may constrain the
+implementation branch:
 
 ```text
 target_repository: <owner>/<repository>
-implementation_branch: <exact branch name>
+implementation_branch: <optional exact branch name>
 ```
 
 `target_repository` must equal the repository owning the resolved GitHub issue.
-The implementation branch is mandatory, never inferred, and distinct from the
-resolved default branch.
+When supplied, the implementation branch must be distinct from the resolved
+default branch. When omitted, admission requires a clean checkout already on a
+non-default branch, which becomes the admitted implementation branch.
 
 Resolve short and qualified references by parsing the issue number and invoking
 `gh issue view <number> --repo <owner>/<repository> --json ...`. A URL may be
@@ -225,15 +227,18 @@ ref/index/metadata states also block admission.
 During admission, verify that at least one current-worktree remote
 unambiguously matches `target_repository`. No matching remote is an operational
 wrong-checkout condition routed non-destructively to `BLOCKED_OPERATION`. A
-package identity conflict with the issue repository, or an implementation
-branch equal to the resolved default branch, is `BLOCKED_SPEC` during
-validation before coding.
+package identity conflict with the issue repository, or a supplied
+implementation branch equal to the resolved default branch, is `BLOCKED_SPEC`
+during validation before coding. An omitted implementation branch while the
+checkout is on the default branch is `BLOCKED_OPERATION` because no branch name
+is available to create.
 
 On the default branch, the Orchestrator records its exact baseline, then creates
-and switches to the approved implementation branch before coding. A clean
-approved non-default branch is used as-is. The admitted implementation branch
-and immutable commit baseline are recorded. The original/default branch must
-remain exactly at its admitted baseline through `DONE`.
+and switches to the supplied implementation branch before coding. A clean
+non-default branch is used as-is when no implementation branch was supplied,
+and must match it when one was supplied. The admitted implementation branch and
+immutable commit baseline are recorded. The original/default branch must remain
+exactly at its admitted baseline through `DONE`.
 
 Immediately before every delegation, the Orchestrator validates the current
 branch and exact expected tip. Initial tickets run sequentially while `HEAD`

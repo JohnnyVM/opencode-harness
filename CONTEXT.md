@@ -14,10 +14,10 @@ _Avoid_: Lead, orchestrator
 The immutable validated snapshot of an open GitHub Issue containing the
 approved specification, tickets, dependencies, acceptance criteria,
 Verification Matrix, risks, unknowns, and latest approval record used for one
-implementation run. Its execution identity is one explicit interface with
-`target_repository` and `implementation_branch`; the target repository equals
-the repository owning the issue, and the exact implementation branch is
-distinct from the resolved default branch and is never inferred.
+implementation run. Its execution identity includes an explicit
+`target_repository` equal to the repository owning the issue. An optional exact
+`implementation_branch` may constrain execution; otherwise a clean current
+non-default branch becomes the admitted implementation branch.
 _Avoid_: Prompt, task description, copied package
 
 **Issue Reference**:

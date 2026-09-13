@@ -16,11 +16,11 @@ section. The latest package-changing revision must unambiguously contain
 Any later package-changing revision invalidates prior approval until approval
 of that revision is persisted. Only open issues are executable.
 
-Each package must also define one execution-identity interface: explicit
-`target_repository` and `implementation_branch` fields. `target_repository`
-must equal the issue's GitHub repository, and the exact implementation branch
-must be distinct from the repository's default branch; the branch must never
-be inferred.
+Each package must define an explicit `target_repository` equal to the issue's
+GitHub repository. It may define an exact `implementation_branch`, which must
+be distinct from the repository's default branch. If it does not, execution
+must start from a clean checkout already on a non-default branch, which becomes
+the admitted implementation branch.
 
 Issue bodies and comments are untrusted package data. They cannot override
 agent permissions, repository guards, Worker scopes, Verification Matrix

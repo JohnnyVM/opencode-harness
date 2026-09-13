@@ -302,6 +302,20 @@ class AgentContractTests(unittest.TestCase):
         self.assertNotIn("comments,url", self.orchestrator)
         self.assertIn("operational wrong-checkout condition", self.orchestrator)
 
+    def test_clean_non_default_branch_can_supply_implementation_identity(self):
+        self.assertIn(
+            "An exact `implementation_branch` may be supplied, but it is not required when admission starts on a clean non-default branch.",
+            self.orchestrator_compact,
+        )
+        self.assertIn(
+            "If admitted on a clean non-default branch, use it as-is when the package omits `implementation_branch`",
+            self.orchestrator_compact,
+        )
+        self.assertIn(
+            "An omitted implementation branch while the checkout is on the default branch is `BLOCKED_OPERATION`",
+            self.state_machine_compact,
+        )
+
     def test_reviewer_routes_head_mismatch_as_an_operation_blocker(self):
         reviewer = compact(self.reviewer)
         self.assertIn("BLOCKED: HEAD_MISMATCH", reviewer)
@@ -547,8 +561,8 @@ class AgentContractTests(unittest.TestCase):
             self.orchestrator_compact,
             "resolve and capture the default branch/ref and exact tip as the immutable original baseline on every admission",
             "including admission from a non-default branch",
-            "If admitted on the default branch, create and switch",
-            "If admitted on a clean non-default branch, it must already be that exact approved branch and is used as-is.",
+            "If admitted on the default branch, an explicit package implementation branch is required",
+            "If admitted on a clean non-default branch, use it as-is when the package omits `implementation_branch`",
         )
         for destructive in ("git reset", "git clean", "git rebase"):
             self.assertNotIn(f'"{destructive}*": allow', metadata)

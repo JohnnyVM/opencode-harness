@@ -114,11 +114,11 @@ an approved specification identifier or heading, decisions and constraints,
 tickets and dependencies, acceptance criteria, required local Verification
 Matrix commands and working directories, remote commands and prerequisites or
 an approved `Not applicable` rationale, known risks, explicit unknowns, and an
-authorization/revision section, and the following explicit execution identity:
-`target_repository` and `implementation_branch`. A missing, malformed, or
-mismatching `target_repository` is `BLOCKED_SPEC` during validation; it must
-equal the repository owning the resolved issue. The implementation branch must
-be explicit and non-empty; never infer it.
+authorization/revision section, and an explicit `target_repository`. A missing,
+malformed, or mismatching `target_repository` is `BLOCKED_SPEC` during
+validation; it must equal the repository owning the resolved issue. An exact
+`implementation_branch` may be supplied, but it is not required when admission
+starts on a clean non-default branch.
 
 Authorization is semantic, not a numeric migration. The latest
 package-changing revision record must unambiguously contain
@@ -157,14 +157,16 @@ detached `HEAD`, unresolved default branch, active or incomplete operations,
 locks, and ambiguous branch, ref, index, worktree, or metadata state. Do not
 infer or repair ambiguity.
 
-The explicit package implementation branch must be distinct from the resolved
-default branch; a contradictory package/default branch is `BLOCKED_SPEC`
-before coding. If admitted on the default branch, create and switch to the
-package-approved implementation branch before coding. If admitted on a clean
-non-default branch, it must already be that exact approved branch and is used
-as-is. Capture the admitted implementation branch,
-immutable commit baseline, expected current `HEAD`, index, worktree, untracked
-files, refs, and relevant repository metadata.
+If supplied, the package implementation branch must be distinct from the
+resolved default branch; a contradictory package/default branch is
+`BLOCKED_SPEC` before coding. If admitted on the default branch, an explicit
+package implementation branch is required so it can be created and checked
+out; without one, route to `BLOCKED_OPERATION`. If admitted on a clean
+non-default branch, use it as-is when the package omits `implementation_branch`,
+or require it to match the exact package branch when supplied. Capture the
+admitted implementation branch, immutable commit baseline, expected current
+`HEAD`, index, worktree, untracked files, refs, and relevant repository
+metadata.
 
 The original/default branch must remain exactly at its admitted baseline. All
 implementation commits remain on the implementation branch. Never merge,
