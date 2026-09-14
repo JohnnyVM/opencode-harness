@@ -143,13 +143,10 @@ class AgentContractTests(unittest.TestCase):
 
     def test_implement_command_is_primary_and_forwards_one_reference(self):
         metadata = frontmatter(IMPLEMENT_COMMAND)
-        command = compact(self.implement_command)
         self.assertIn("agent: implementation-orchestrator", metadata)
         self.assertIn("subtask: false", metadata)
         self.assertEqual(self.implement_command.count("$ARGUMENTS"), 1)
-        self.assertIn("single durable GitHub Issue Reference", command)
-        self.assertIn("complete command argument", command)
-        self.assertIn("Do not reinterpret it as a copied package", command)
+        self.assertEqual(self.implement_command.split("---", 2)[2].strip(), "$ARGUMENTS")
 
     def test_setup_command_forwards_arguments_and_can_write_its_outputs(self):
         command = read(SETUP_COMMAND)
