@@ -60,3 +60,18 @@ See [`docs/agents/agent-workflow.md`](docs/agents/agent-workflow.md) for the
 agent map and
 [`docs/agents/orchestrator-state-machine.md`](docs/agents/orchestrator-state-machine.md)
 for the implementation workflow contract.
+
+## Lifecycle Tests
+
+Run the directory-based lifecycle tests with:
+
+```bash
+python3 scripts/run_tests.py
+python3 scripts/run_tests.py lifecycle_smoke
+```
+
+Each directory under `tests/` that contains a lifecycle phase must provide
+`prepare.py`, `run.py`, and `validate.py`. The runner executes those files in
+order from the test directory. Each phase receives the same isolated temporary
+directory in the `TEST_WORKSPACE` environment variable.
+Pass one or more test directory names to run only those tests.
