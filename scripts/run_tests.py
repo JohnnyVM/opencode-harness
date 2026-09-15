@@ -2,6 +2,7 @@
 """Run directory-based lifecycle tests."""
 
 import argparse
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import subprocess
@@ -36,9 +37,13 @@ def discover_tests(selected):
     return tests, errors
 
 
-def run_test(test, workspace):
+def run_test(test, workspace, artifacts):
     environment = os.environ.copy()
     environment["TEST_WORKSPACE"] = str(workspace)
+    environment["TEST_ARTIFACTS"] = str(artifacts)
+    environment["PYTHONPATH"] = os.pathsep.join(
+        value for value in (str(ROOT), environment.get("PYTHONPATH")) if value
+    )
 
     for phase in PHASES:
         print(f"[{test.name}] {phase}", flush=True)
@@ -74,12 +79,14 @@ def main():
         return 1
 
     failures = []
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     with tempfile.TemporaryDirectory(prefix="opencode-harness-tests-") as temp:
         workspace_root = Path(temp)
         for test in tests:
             workspace = workspace_root / test.name
             workspace.mkdir()
-            if not run_test(test, workspace):
+            artifacts = ROOT / "artifacts" / test.name / run_id
+            if not run_test(test, workspace, artifacts):
                 failures.append(test.name)
 
     print(f"\n{len(tests) - len(failures)}/{len(tests)} lifecycle tests passed")

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 
@@ -16,6 +17,7 @@ ISSUE_REFERENCE = "Guadalsistema/guadalsistema-odoo-modules#109"
 @unittest.skipUnless(OPENCODE, "OpenCode CLI is not installed")
 class OpenCodeCommandRoutingTests(unittest.TestCase):
     def test_implement_transmits_only_the_issue_reference_to_orchestrator(self):
+        assert OPENCODE is not None
         environment = os.environ.copy()
         environment.update(
             {
@@ -26,18 +28,23 @@ class OpenCodeCommandRoutingTests(unittest.TestCase):
                 "OPENCODE_DISABLE_LSP_DOWNLOAD": "1",
             }
         )
-        result = subprocess.run(
-            [OPENCODE, "--pure", "debug", "config"],
-            cwd=ROOT,
-            env=environment,
-            text=True,
-            capture_output=True,
-            timeout=30,
-            check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / "config.json"
+            with output.open("w") as stream:
+                result = subprocess.run(
+                    [OPENCODE, "--pure", "debug", "config"],
+                    cwd=ROOT,
+                    env=environment,
+                    text=True,
+                    stdout=stream,
+                    stderr=subprocess.PIPE,
+                    timeout=30,
+                    check=False,
+                )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            config = json.loads(output.read_text())
 
-        command = json.loads(result.stdout)["command"]["implement"]
+        command = config["command"]["implement"]
         self.assertEqual(command["agent"], "implementation-orchestrator")
         self.assertFalse(command["subtask"])
         self.assertEqual(command["template"], "$ARGUMENTS")

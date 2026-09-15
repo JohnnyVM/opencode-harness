@@ -2,8 +2,8 @@
 
 import os
 from pathlib import Path
-import shutil
-import subprocess
+
+from scripts.lifecycle_opencode import capture_agents
 
 
 PROMPT = """I want modify the @buy and @sale command to add the following feature:
@@ -17,44 +17,16 @@ Generate the spec file in the folder .scratch/modify-buy-sale-command.md
 """
 
 workspace = Path(os.environ["TEST_WORKSPACE"])
-repository = workspace / "tmp"
-harness = Path(__file__).resolve().parents[2]
-opencode = shutil.which("opencode")
-if not opencode:
-    raise RuntimeError("opencode CLI is not installed")
-
-environment = os.environ.copy()
-environment.update(
-    {
-        "OPENCODE_CONFIG": str(harness / "opencode" / "opencode.jsonc"),
-        "OPENCODE_CONFIG_DIR": str(harness / "opencode"),
-        "OPENCODE_CONFIG_CONTENT": '{"mcp":{"playwright":{"enabled":false}}}',
-        "OPENCODE_DISABLE_MODELS_FETCH": "1",
-        "OPENCODE_DISABLE_LSP_DOWNLOAD": "1",
-    }
+capture_agents(
+    repository=workspace / "tmp",
+    artifacts=Path(os.environ["TEST_ARTIFACTS"]),
+    harness=Path(__file__).resolve().parents[2],
+    invocations=[
+        {"stage": "spec-design", "agent": "spec-design", "prompt": PROMPT},
+        {
+            "stage": "implementation",
+            "agent": "implementation-orchestrator",
+            "prompt": "/implement .scratch/modify-buy-sale-command.md",
+        },
+    ],
 )
-
-with (workspace / "spec-design.log").open("w") as output:
-    subprocess.run(
-        [opencode, "run", "--pure", "--agent", "spec-design", PROMPT],
-        cwd=repository,
-        env=environment,
-        stdout=output,
-        check=True,
-    )
-
-with (workspace / "implementation.log").open("w") as output:
-    subprocess.run(
-        [
-            opencode,
-            "run",
-            "--pure",
-            "--agent",
-            "implementation-orchestrator",
-            "/implement .scratch/modify-buy-sale-command.md",
-        ],
-        cwd=repository,
-        env=environment,
-        stdout=output,
-        check=True,
-    )

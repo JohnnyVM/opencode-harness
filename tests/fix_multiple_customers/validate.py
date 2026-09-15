@@ -8,7 +8,7 @@ import subprocess
 from scripts.lifecycle_opencode import validate_observability
 
 
-VALIDATION_COMMIT = "229d0491bc3f3ea67e39eb02110e73ca6fdeb1a9"
+VALIDATION_COMMIT = "992714fce90ff9787f1f026d03a9f97da708c074"
 WORKFLOW = ".github/workflows/test-sale.yml"
 
 workspace = Path(os.environ["TEST_WORKSPACE"])

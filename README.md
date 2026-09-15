@@ -73,5 +73,11 @@ python3 scripts/run_tests.py lifecycle_smoke
 Each directory under `tests/` that contains a lifecycle phase must provide
 `prepare.py`, `run.py`, and `validate.py`. The runner executes those files in
 order from the test directory. Each phase receives the same isolated temporary
-directory in the `TEST_WORKSPACE` environment variable.
+directory in the `TEST_WORKSPACE` environment variable and a persistent,
+git-ignored output directory in `TEST_ARTIFACTS`.
 Pass one or more test directory names to run only those tests.
+
+Instrumented OpenCode tests store raw event streams, session exports, exposed
+model reasoning, model usage and timing metrics, `opencode-trace` records, and
+`act` output under `artifacts/`. These files may contain prompts, tool data,
+source content, or secrets and must not be committed.
