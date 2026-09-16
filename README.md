@@ -37,21 +37,37 @@ installation, restart OpenCode to load the new configuration.
 
 ## Implement Command
 
-Use a complete open GitHub issue as the durable Implementation Package:
+Pass either an exact GitHub Issue Reference or direct implementation input:
 
 ```text
 /implement #57
 /implement owner/repository#57
 /implement https://github.com/owner/repository/issues/57
+/implement specs/feature.md
+/implement Fix the failing customer import and run its existing checks
 ```
 
 The command selects `implementation-orchestrator` as a primary agent and
-forwards exactly one Issue Reference. The issue must contain the complete
-package. The reference determines the target repository, so the package need
-not declare `target_repository`. `spec-design` remains the default primary
-agent, and plain text does not automatically switch primary agents. To use
-ordinary `implement #57` text, select `implementation-orchestrator` manually
-first.
+forwards all arguments unchanged. When the complete input is an exact
+`#<number>`, `<owner>/<repository>#<number>`, or GitHub issue URL, the
+Orchestrator resolves that durable package. All other input is handled directly,
+including prose, pasted package text, multiple or embedded references, and
+local paths. Embedded Issue References are not automatically extracted.
+
+An exact Issue Reference determines the target repository. Direct input uses
+the current checkout's unambiguous Git remote. In both cases, the resulting
+implementation must be safe to execute. Complete packages are validated before
+admission; for raw prose, the Orchestrator resolves executable details during
+planning and blocks if a required user decision remains. `spec-design` remains
+the default primary agent, and plain text does not automatically switch primary
+agents. Select `implementation-orchestrator` manually before supplying
+implementation input outside `/implement`.
+
+Generated local or issue packages contain exactly one readiness field:
+`status: SPEC_APPROVED_BY_AGENT` for a complete agent-finalized package, or
+`status: SPEC_APPROVED_BY_USER` when the user explicitly approved that concrete
+package. Either can start local implementation; external writes still require
+separate runtime authorization.
 
 Existing installations link command files individually. Rerun the installer to
 add `/implement`, then restart OpenCode.

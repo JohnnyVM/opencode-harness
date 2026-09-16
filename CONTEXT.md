@@ -11,20 +11,31 @@ Implementation Package.
 _Avoid_: Lead, orchestrator
 
 **Implementation Package**:
-The immutable validated snapshot of an open GitHub Issue containing the
-complete specification, tickets, dependencies, acceptance criteria,
-Verification Matrix, risks, and unknowns used for one implementation run. Its
-Issue Reference determines the target repository; an
-optional `target_repository` may repeat that identity as a consistency
-assertion. An optional exact `implementation_branch` may constrain execution;
-otherwise a clean current non-default branch becomes the admitted
-implementation branch.
-_Avoid_: Prompt, task description, copied package
+The immutable validated snapshot of direct implementation input or a resolved
+open GitHub Issue containing the complete specification, tickets, dependencies,
+acceptance criteria, Verification Matrix, risks, and unknowns used for one
+implementation run. A generated package has exactly one readiness status,
+`SPEC_APPROVED_BY_AGENT` or `SPEC_APPROVED_BY_USER`; either permits local
+implementation without authorizing external writes. An exact Issue Reference
+determines the target repository; direct input uses the current checkout's
+unambiguous Git remote. An optional
+`target_repository` may repeat that identity as a consistency assertion. An
+optional exact `implementation_branch` may constrain execution; otherwise a
+clean current non-default branch becomes the admitted implementation branch.
+_Avoid_: Unvalidated input
+
+**Implementation Input**:
+Any complete input supplied to the Implementation Orchestrator. A full-input
+Issue Reference is resolved as a durable package; all other prose, pasted text,
+paths, and embedded or multiple references are handled directly without a
+string-shape admission gate.
+_Avoid_: Issue Reference, when the input is not an exact reference
 
 **Issue Reference**:
-Exactly one durable locator for an Implementation Package: `#<number>` in the
-current repository, `<owner>/<repository>#<number>`, or a GitHub issue URL.
-_Avoid_: Package text
+A durable locator for an Implementation Package: `#<number>` in the current
+repository, `<owner>/<repository>#<number>`, or a GitHub issue URL. It triggers
+deterministic issue retrieval only when it is the complete implementation input.
+_Avoid_: Embedded reference, direct implementation input
 
 **Implementation Orchestrator**:
 The user-facing agent that coordinates execution of an Implementation Package

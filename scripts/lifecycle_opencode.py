@@ -176,15 +176,10 @@ def capture_agents(repository, artifacts, harness, invocations):
             )
         if result.returncode:
             raise subprocess.CalledProcessError(result.returncode, result.args)
-        responses = [
-            json.loads(line).get("part", {}).get("text", "")
-            for line in events.read_text().splitlines()
-        ]
         return {
             "stage": invocation["stage"],
             "agent": invocation["agent"],
             "elapsed_seconds": elapsed,
-            "blocked": any("BLOCKED_" in response for response in responses),
             "sessions": sessions,
         }
 
@@ -247,7 +242,7 @@ def capture_agents(repository, artifacts, harness, invocations):
 
 
 def validate_observability(artifacts, expected_stages, expected_models):
-    """Sanity-check metrics against raw exports and return blocked stages."""
+    """Sanity-check metrics against raw exports."""
     metrics = json.loads((artifacts / "metrics.json").read_text())
     if [stage["stage"] for stage in metrics["stages"]] != list(expected_stages):
         raise AssertionError("metrics do not contain the expected agent stages")
@@ -325,4 +320,3 @@ def validate_observability(artifacts, expected_stages, expected_models):
         f"trace_records={len(trace_records)}"
     )
     print(f"Raw artifacts: {artifacts}")
-    return [stage["stage"] for stage in metrics["stages"] if stage["blocked"]]

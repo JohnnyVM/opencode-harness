@@ -19,7 +19,10 @@ subprocess.run(
     check=True,
 )
 subprocess.run(
-    ["git", "checkout", "--detach", START_COMMIT],
+    ["git", "switch", "--create", "e2e/modify-buy-sale-command", START_COMMIT],
     cwd=repository,
     check=True,
+)
+(repository / ".git" / "info" / "exclude").write_text(
+    ".scratch/\n.agent-trace/\n"
 )

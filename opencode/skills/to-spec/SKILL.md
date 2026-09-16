@@ -1,12 +1,37 @@
 ---
 name: to-spec
-description: "Turn the current conversation into a spec and publish it to the project issue tracker: no interview, just synthesis of what you've already discussed."
+description: "Turn the current conversation into a finalized local or issue-tracker spec: no interview, just synthesis of what you've already discussed."
 ---
 
 This skill takes the current conversation context and codebase understanding
 and produces a stable draft specification. Do not conduct new discovery or
 interview the user; synthesize only what has already been decided. If a
 required decision is unresolved, record it under Explicit Unknowns.
+
+## Readiness status and autonomous generation
+
+Every finalized Implementation Package must contain exactly one `status` field,
+whose value is exactly one of:
+
+- `SPEC_APPROVED_BY_AGENT`: the package is complete using evidence, explicit
+  user decisions, and clearly recorded agent-selected recommendations or
+  assumptions, but the user did not explicitly approve the concrete package.
+- `SPEC_APPROVED_BY_USER`: the user explicitly approved the concrete package or
+  explicitly authorized implementation of that exact package.
+
+These statuses describe implementation readiness, not authorization for GitHub
+writes, pushes, deployment, or any other external effect. A package with an
+unresolved blocking product requirement must not receive either status. Prefer
+bounded recommended defaults for safe non-product ambiguities, and record the
+assumptions and risks.
+
+When the user requests autonomous/non-interactive spec generation, or asks to
+generate, write, or save a spec file without explicitly requesting an interview
+or review first, do not stop for clarification. Apply the rules above and write
+the package to the requested permitted local location when applicable. Return
+that path with `/implement <path>`. Local package generation does not require
+external-write authorization. GitHub publication remains the preferred durable
+flow and still requires explicit authorization for the external write.
 
 Read `docs/issue-tracker.md` for the publication workflow and `docs/domain.md`
 for domain-document conventions. If either required document is missing, tell the
@@ -22,14 +47,15 @@ Prefer existing seams to new ones and use the highest stable seam possible. Do
 not introduce or ask the user to approve new seams during this synthesis step;
 record unresolved seam decisions under Explicit Unknowns.
 
-3. Write the spec using the template below. Publishing is an external write, so
-publish it to the project issue tracker only when the user has explicitly
-authorized creating or updating that issue. Apply labels only when
-`docs/issue-tracker.md` explicitly defines them.
-For GitHub, the issue is the canonical Implementation Package. Publish the
-stable package after the user authorizes creating or updating the issue, then
-return its Issue Reference and `/implement <reference>`. Do not require copied
-package text or an out-of-band approval message for implementation.
+3. Write the spec using the template below. When a local path was requested,
+write the finalized package there and return the path with `/implement <path>`.
+Publishing is an external write, so publish to the project issue tracker only
+when the user has explicitly authorized creating or updating that issue. Apply
+labels only when `docs/issue-tracker.md` explicitly defines them. For GitHub,
+the issue is the preferred durable Implementation Package. After authorized
+publication, return its Issue Reference and `/implement <reference>`. Do not
+require copied package text or an out-of-band approval message for
+implementation.
 
 Any package-changing revision must append or update the latest revision record so
 the durable issue describes the current package before a new implementation
@@ -40,9 +66,15 @@ introduce numeric revision migrations.
 
 ## Implementation Package execution identity
 
+`status: SPEC_APPROVED_BY_AGENT`
+
+Replace the value with exactly one allowed token: `SPEC_APPROVED_BY_AGENT` or
+`SPEC_APPROVED_BY_USER`. Include this field exactly once in every finalized
+package.
+
 - `target_repository`: optional. When supplied, the exact GitHub
-  `<owner>/<repository>` must equal the repository owning this issue. Otherwise
-  the Issue Reference determines the target repository.
+  `<owner>/<repository>` must equal the repository owning a published issue or
+  the repository identified by the current checkout for a local package.
 - `implementation_branch`: an optional exact implementation branch. If omitted,
   implementation must start from a clean checkout already on a non-default
   branch.

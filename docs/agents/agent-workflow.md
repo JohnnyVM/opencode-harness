@@ -16,7 +16,7 @@ flowchart TD
     SD -->|research and design support| R[Researcher]
     R --> SD
     SD -->|complete GitHub issue package| O[Implementation Orchestrator]
-    U -->|/implement issue-reference| O
+    U -->|/implement implementation-input| O
     O --> C[One bounded coder at a time]
     C --> FC{Focused development<br/>checks pass?}
     FC -->|no, bounded correction available| C
@@ -37,22 +37,28 @@ flowchart TD
 
 Spec Design owns discovery and design, using `grilling` (or the existing
 `grill-with-docs` skill), research, domain modeling, and codebase design as
-needed. It publishes a complete package as a GitHub Issue and returns its
-Issue Reference. The explicit `/setup-matt-pocock-skills` command is separate
-from this flow and configures GitHub-only conventions after confirmation; it is
-not invoked automatically.
+needed. It writes a requested local package or publishes an authorized GitHub
+Issue and returns its implementation input. A complete package carries
+`SPEC_APPROVED_BY_AGENT` or `SPEC_APPROVED_BY_USER`; either is implementation
+ready, while external writes remain separately authorized. The explicit
+`/setup-matt-pocock-skills` command is separate from this flow and configures
+GitHub-only conventions after confirmation; it is not invoked automatically.
 
 `spec-design` remains the default primary agent, while
 `implementation-orchestrator` is the independent primary agent selected by
 `/implement`. Plain text does not automatically switch primary agents.
 
-The Orchestrator independently resolves and validates exactly one complete
-Issue package before repository admission. The Issue Reference supplies the
-target repository, and the package may constrain the exact implementation
-branch; otherwise a clean current non-default branch is admitted. It coordinates
-bounded coders, then delegates the complete verification matrix to Tester before
-the review stages. The candidate and implementation commit remain on that
-admitted branch; completion does not merge into the default branch.
+The Orchestrator validates arbitrary implementation input before repository
+admission. An exact full-input Issue Reference resolves a durable issue package;
+all other prose, pasted package text, multiple or embedded references, and local
+paths are handled directly without syntax rejection. Embedded Issue References
+are not automatically extracted. Exact references supply the target repository,
+while direct input uses the current checkout's unambiguous Git remote. The
+package may constrain the exact implementation branch; otherwise a clean current
+non-default branch is admitted. The Orchestrator coordinates bounded coders,
+then delegates the complete verification matrix to Tester before the review
+stages. The candidate and implementation commit remain on that admitted branch;
+completion does not merge into the default branch.
 
 Debugger is an Orchestrator leaf: it diagnoses a consolidated unclear failure
 and cannot delegate or implement. Code Reviewer runs only after applicable
@@ -80,7 +86,7 @@ supervision or an explicitly provisioned isolated environment if needed.
 | --- | --- | --- | --- | --- |
 | Spec Design | [`opencode/agents/spec-design.md`](../../opencode/agents/spec-design.md) | Primary agent | `grilling`, `grill-with-docs`, `domain-modeling`, `codebase-design`, `to-spec`, `github`, `setup-matt-pocock-skills` | May edit domain, ADR, and specification documents; production edits remain denied. |
 | Researcher | [`opencode/agents/researcher.md`](../../opencode/agents/researcher.md) | Spec Design | None | Edit and delegation are denied; returns evidence, options, unknowns, and follow-up questions. |
-| Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Primary agent or `/implement` | None | Resolves one complete issue package before admission; edit denied; owns orchestration. |
+| Implementation Orchestrator | [`opencode/agents/implementation-orchestrator.md`](../../opencode/agents/implementation-orchestrator.md) | Primary agent or `/implement` | None | Validates direct input or resolves an exact Issue Reference before admission; edit denied; owns orchestration. |
 | coder-qwen | [`opencode/agents/coder-qwen.md`](../../opencode/agents/coder-qwen.md) | Orchestrator | None | Bounded implementation worker for small mechanical tickets. |
 | coder-gpt | [`opencode/agents/coder-gpt.md`](../../opencode/agents/coder-gpt.md) | Orchestrator | None | Bounded implementation worker for complex or subtle tickets. |
 | Debugger | [`opencode/agents/debugger.md`](../../opencode/agents/debugger.md) | Orchestrator | None | Diagnostic-only leaf; disposable artifacts may only be written under `/tmp`. |
@@ -119,5 +125,6 @@ Podman.
 - [`orchestrator-state-machine.md`](./orchestrator-state-machine.md) is the
   source of truth for Orchestrator states, transitions, gates, budgets,
   blockers, and invariants.
-- GitHub Issues are the issue/specification surface; operational commands are
-  documented in [`issue-tracker.md`](../issue-tracker.md).
+- GitHub Issues are the issue surface; specifications may also be local files or
+  direct input. Operational commands are documented in
+  [`issue-tracker.md`](../issue-tracker.md).

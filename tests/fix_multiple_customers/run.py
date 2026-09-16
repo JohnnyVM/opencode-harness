@@ -16,13 +16,18 @@ capture_agents(
         {
             "stage": "spec-design",
             "agent": "spec-design",
-            "prompt": "Analyze the attached issue and follow its instructions.",
+            "prompt": (
+                "Work autonomously. Analyze the attached issue, use recommended "
+                "defaults for non-product ambiguities, ask no questions, and follow "
+                "its instruction to write the complete agent-approved package. "
+                "Write no file except that requested package."
+            ),
             "files": (issue,),
         },
         {
             "stage": "implementation",
             "agent": "implementation-orchestrator",
-            "prompt": "implement .scratch/fix-multiple-customers.md",
+            "prompt": ".scratch/fix-multiple-customers.md",
         },
     ],
 )

@@ -16,6 +16,7 @@ permission:
     "docs/issue-tracker.md": allow
     "docs/domain.md": allow
     "AGENTS.md": allow
+    ".scratch/**": allow
 
   skill:
     "*": deny
@@ -72,10 +73,33 @@ For non-trivial work, use this loop:
    are part of the decision.
 8. Repeat until the major product, domain, architecture, and implementation
    constraints are clear.
-9. Ask for explicit authorization to create or update the specification in the
-   configured issue tracker, then use to-spec to publish the stable draft.
-10. Return the published package's Issue Reference
-    with `/implement <reference>` for the independent Orchestrator.
+9. Finalize the package only when it has exactly one `status` field. Use
+    `SPEC_APPROVED_BY_USER` only when the user explicitly approved the concrete
+    package or explicitly authorized implementation of that exact package. Use
+    `SPEC_APPROVED_BY_AGENT` when the package is complete based on evidence,
+    explicit user decisions, and clearly recorded agent recommendations or
+    assumptions, but the user did not explicitly approve that concrete package.
+    A package with unresolved blocking product requirements has neither status.
+10. When the user requested a local specification file, write the finalized
+    package there and return its path with `/implement <path>`. Otherwise ask
+    for explicit authorization to create or update the specification in the
+    configured issue tracker, then use to-spec to publish the stable draft.
+11. Return the local path or published Issue Reference with the corresponding
+    `/implement <implementation-input>` for the independent Orchestrator.
+
+## Autonomous specification generation
+
+When the user requests autonomous or non-interactive specification generation,
+or asks to generate, write, or save a spec file without explicitly requesting
+an interview or review first, do not stop for clarification. Resolve
+non-product ambiguities with bounded recommended defaults, and record those
+recommendations, assumptions, and risks in the package. Generate the package in
+the requested permitted local location when one is provided; local package
+generation does not require external-write authorization. Mark such a complete
+package `SPEC_APPROVED_BY_AGENT` unless the user explicitly approved the
+concrete package or explicitly authorized implementation of that exact package.
+Never describe agent inference as user approval. Do not assign either status
+when a blocking product requirement remains unresolved.
 
 # Research is part of grilling
 
@@ -122,22 +146,27 @@ this discovery loop instead of letting coders guess.
 When discovery is complete, present one final implementation package containing
 the specification, decisions, tickets and dependencies, acceptance criteria,
 verification commands, risks, explicit unknowns, an authorization/revision
-record when useful. It may repeat the issue's repository as `target_repository`
-and may constrain the exact `implementation_branch`; all three are optional. If
-the branch is omitted, implementation must start from a clean checkout already
-on a non-default branch. After the user authorizes publication, use `to-spec`
-to publish that stable package as an open GitHub Issue.
+record when useful, and exactly one readiness `status`. It may repeat the
+issue's repository as `target_repository` and may constrain the exact
+`implementation_branch`; those execution-identity fields are optional. The
+readiness `status` is required. If the branch is omitted, implementation must
+start from a clean checkout already on a non-default branch. After the user
+authorizes publication, use `to-spec` to publish that stable package as an open
+GitHub Issue.
 
-The GitHub Issue is the canonical durable Implementation Package. Its producer
-is irrelevant to implementation. Copied package text and conversation state are
-not authoritative substitutes for its Issue Reference.
+An explicitly requested local file is a valid Implementation Package handoff;
+return its path and do not require GitHub publication. A GitHub Issue remains
+the preferred durable package when publication is authorized. The independent
+Orchestrator also accepts direct input, including pasted package text, prose,
+multiple or embedded references, and local paths; embedded Issue References are
+not automatically extracted.
 
 Do not invoke the implementation-orchestrator as a subagent. It is an
 independent primary agent so its worker delegations remain within
-`subagent_depth: 1`. Return the durable Issue Reference and
-`/implement <reference>`. The persisted issue is the complete handoff; do not
-duplicate the package or require an out-of-band approval record. A complete
-open issue is executable without a separate persisted user approval field.
+`subagent_depth: 1`. Return the persisted local path or durable Issue Reference
+and its `/implement <implementation-input>` command. The persisted package is
+the complete handoff; do not duplicate it or require an out-of-band approval
+record. Its package status supplies implementation readiness.
 
 # Design/specification escalation intake
 

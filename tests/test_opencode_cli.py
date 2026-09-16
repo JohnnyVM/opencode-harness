@@ -11,12 +11,15 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 OPENCODE = os.environ.get("OPENCODE_BIN") or shutil.which("opencode")
-ISSUE_REFERENCE = "Guadalsistema/guadalsistema-odoo-modules#109"
+DIRECT_INPUT = (
+    "Implement this pasted text; leave #109 and owner/repo#12 as literal "
+    "content in /tmp/spec.md"
+)
 
 
 @unittest.skipUnless(OPENCODE, "OpenCode CLI is not installed")
 class OpenCodeCommandRoutingTests(unittest.TestCase):
-    def test_implement_transmits_only_the_issue_reference_to_orchestrator(self):
+    def test_implement_transmits_arbitrary_arguments_unchanged_to_orchestrator(self):
         assert OPENCODE is not None
         environment = os.environ.copy()
         environment.update(
@@ -48,7 +51,7 @@ class OpenCodeCommandRoutingTests(unittest.TestCase):
         self.assertEqual(command["agent"], "implementation-orchestrator")
         self.assertFalse(command["subtask"])
         self.assertEqual(command["template"], "$ARGUMENTS")
-        self.assertEqual(command["template"].replace("$ARGUMENTS", ISSUE_REFERENCE), ISSUE_REFERENCE)
+        self.assertEqual(command["template"].replace("$ARGUMENTS", DIRECT_INPUT), DIRECT_INPUT)
 
 
 if __name__ == "__main__":
