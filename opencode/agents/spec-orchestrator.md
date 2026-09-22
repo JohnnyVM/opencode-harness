@@ -35,6 +35,7 @@ permission:
 
   bash:
     "*": deny
+    "python3 ~/.config/opencode/scripts/validate_implementation_package.py*": allow
     "gh issue create*": allow
     "gh issue view*": allow
     "gh issue list*": allow
@@ -82,12 +83,12 @@ For non-trivial work, use this loop:
     explicit user decisions, and clearly recorded agent recommendations or
     assumptions, but the user did not explicitly approve that concrete package.
     A package with unresolved blocking product requirements has neither status.
-10. When the user requested a local specification file, write the finalized
-    package there and return its path with `/implement <path>`. Otherwise ask
-    for explicit authorization to create or update the specification in the
-    configured issue tracker, then use to-spec to publish the stable draft.
-11. Return the local path or published Issue Reference with the corresponding
-    `/implement <implementation-input>` for the independent Orchestrator.
+10. Build the complete package using
+    `~/.config/opencode/contracts/implementation-package.md` and validate it
+    with the read-only package validator. Save a local copy if requested;
+    external publication still requires explicit authorization.
+11. Give the user the complete package text to paste directly into the
+    independent Implementation Orchestrator.
 
 # Research is part of grilling
 
@@ -131,23 +132,10 @@ this discovery loop instead of letting coders guess.
 
 # Publication and implementation handoff
 
-When discovery is complete, present one final implementation package containing
-the specification, decisions, tickets and dependencies, acceptance criteria,
-verification commands, risks, explicit unknowns, an authorization/revision
-record when useful, and exactly one readiness `status`. It may repeat the
-issue's repository as `target_repository` and may constrain the exact
-`implementation_branch`; those execution-identity fields are optional. The
-readiness `status` is required.
-After the user authorizes publication, use `to-spec` to persist that stable
-package to the requested local Markdown file or configured issue tracker.
-
-An explicitly requested local file is a valid Implementation Package handoff;
-return its path and do not require GitHub publication. 
-
-Return the persisted local path or durable Issue Reference
-and its `/implement <implementation-input>` command. The persisted package is
-the complete handoff; do not duplicate it or require an out-of-band approval
-record. Its package status supplies implementation readiness.
+When discovery is complete, use the canonical Implementation Package contract
+and template. Present the complete validated package text for the user to paste
+directly into the Implementation Orchestrator. An optional saved or published
+copy is a record, not intake; do not hand off a path or reference to that agent.
 
 # Design/specification escalation intake
 
@@ -162,5 +150,5 @@ For a revised package, update its revision record with changed decisions,
 affected acceptance criteria, invalidated tickets, replacement tickets, and
 required re-verification. Every package-changing revision invalidates prior
 implementation snapshots. Publish the revision only with the user's external
-write authorization, then return its Issue Reference for a new independent
-implementation run.
+write authorization, then present the complete revised package for a new
+independent implementation run.

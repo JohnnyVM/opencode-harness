@@ -14,10 +14,14 @@ class InstallerTests(unittest.TestCase):
         (source / "agents").mkdir(parents=True)
         (source / "skills" / "alpha").mkdir(parents=True)
         (source / "commands").mkdir(parents=True)
+        (source / "contracts").mkdir(parents=True)
+        (source / "scripts").mkdir(parents=True)
         (source / "opencode.jsonc").write_text("{}")
         (source / "agents" / "z.md").write_text("z")
         (source / "agents" / "ignore.txt").write_text("ignore")
         (source / "commands" / "a.md").write_text("a")
+        (source / "contracts" / "package.md").write_text("contract")
+        (source / "scripts" / "validate.py").write_text("validator")
         (source / "skills" / "alpha" / "SKILL.md").write_text("alpha skill")
         return source
 
@@ -32,6 +36,8 @@ class InstallerTests(unittest.TestCase):
                 destination / "agents" / "z.md": source / "agents" / "z.md",
                 destination / "skills" / "alpha": source / "skills" / "alpha",
                 destination / "commands" / "a.md": source / "commands" / "a.md",
+                destination / "contracts" / "package.md": source / "contracts" / "package.md",
+                destination / "scripts" / "validate.py": source / "scripts" / "validate.py",
             }
             for path, target in expected.items():
                 self.assertTrue(path.is_symlink())
@@ -112,18 +118,21 @@ class InstallerTests(unittest.TestCase):
         self.assertIn(cleaner, entries)
         self.assertEqual(entries[cleaner], Path("agents") / "cleaner.md")
 
-    def test_real_implement_command_is_discovered_and_linked(self):
+    def test_real_contract_and_validator_are_discovered_and_linked(self):
         source = install.source_root() / "opencode"
-        implement = source / "commands" / "implement.md"
+        contract = source / "contracts" / "implementation-package.md"
+        validator = source / "scripts" / "validate_implementation_package.py"
         entries = dict(install._entries(source))
-        self.assertEqual(entries[implement], Path("commands") / "implement.md")
+        self.assertEqual(entries[contract], Path("contracts") / contract.name)
+        self.assertEqual(entries[validator], Path("scripts") / validator.name)
 
         with tempfile.TemporaryDirectory() as home:
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(install.install(source, home), 0)
-            destination = Path(home) / ".config" / "opencode" / "commands" / "implement.md"
-            self.assertTrue(destination.is_symlink())
-            self.assertEqual(os.readlink(destination), str(implement.resolve()))
+            for item, folder in ((contract, "contracts"), (validator, "scripts")):
+                destination = Path(home) / ".config" / "opencode" / folder / item.name
+                self.assertTrue(destination.is_symlink())
+                self.assertEqual(os.readlink(destination), str(item.resolve()))
 
 
 if __name__ == "__main__":

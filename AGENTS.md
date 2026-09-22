@@ -19,15 +19,12 @@ input. See `docs/issue-tracker.md`.
 
 This repository uses a single-context domain documentation layout. See `docs/domain.md`.
 
-## Direct commands
+## Implementation handoff
 
-- `/implement <implementation-input>` selects the independent Implementation
-  Orchestrator. Exact GitHub Issue References are resolved as durable packages;
-  arbitrary input is otherwise accepted directly, including prose, pasted
-  package text, multiple or embedded references, and local paths. Embedded
-  Issue References are not automatically extracted.
+Use `opencode/contracts/implementation-package.md` to create a complete
+package. Paste its text directly into the Implementation Orchestrator. Commands
+may prepare package text from other sources before selecting that agent.
 
 The `/setup-matt-pocock-skills` command is available for explicit user setup of
 repository conventions. It is triggered by the user directly, not automatically
 by the system.
-

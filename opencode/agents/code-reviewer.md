@@ -28,8 +28,7 @@ supplied all of these inputs:
 
 - validated specification
 - combined diff and changed-file list
-- every applicable Tester `PASS` report, accounting for the complete approved
-  local matrix and any required remote matrix
+- Tester `PASS` report accounting for the complete approved Verification Matrix
 - exact commit to review
 - coder reports
 - any Debug Reports and resulting fixes
@@ -41,10 +40,8 @@ Tester evidence only.
 
 Before reviewing, run `git rev-parse HEAD`. If the supplied review commit and
 current `HEAD` differ, return exactly `BLOCKED: HEAD_MISMATCH`. A pre-commit
-local Tester report identifies its supplied branch/current-`HEAD` context and
-is not required to claim the later implementation commit. When remote
-verification applies, every remote Tester result must identify the supplied
-review commit; otherwise return exactly `BLOCKED: TESTING_NOT_PASSED`.
+Tester report identifies its supplied branch/current-`HEAD` context and
+is not required to claim the later implementation commit.
 
 Inspect:
 

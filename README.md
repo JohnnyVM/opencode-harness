@@ -19,6 +19,8 @@ repository targets:
 - each `opencode/agents/*.md`
 - each `opencode/skills/<skill>/` that contains a `SKILL.md` file
 - each `opencode/commands/*.md`
+- each `opencode/contracts/*.md`
+- each `opencode/scripts/*.py`
 
 It skips existing destinations rather than replacing them. Back up and remove
 an existing destination before linking it if needed.
@@ -35,47 +37,24 @@ and skipped without modification. The installer resolves source paths
 independently of the current working directory (cwd-independent). After
 installation, restart OpenCode to load the new configuration.
 
-## Implement Command
+## Implementation Package handoff
 
-Pass either an exact GitHub Issue Reference or direct implementation input:
+Create a complete package using
+[`opencode/contracts/implementation-package.md`](opencode/contracts/implementation-package.md).
+The user can fill in the template directly, or `spec-orchestrator` can prepare
+it. Validate the finished text before handoff:
 
-```text
-/implement #57
-/implement owner/repository#57
-/implement https://github.com/owner/repository/issues/57
-/implement specs/feature.md
-/implement Fix the failing customer import and run its existing checks
+```bash
+python3 opencode/scripts/validate_implementation_package.py < package.md
 ```
 
-The command selects `implementation-orchestrator` as a primary agent and
-forwards all arguments unchanged. When the complete input is an exact
-`#<number>`, `<owner>/<repository>#<number>`, or GitHub issue URL, the
-Orchestrator resolves that durable package. All other input is handled directly,
-including prose, pasted package text, multiple or embedded references, and
-local paths. Embedded Issue References are not automatically extracted.
+Select `implementation-orchestrator` and paste the **complete package text**
+into its conversation. The agent does not accept paths, issue references, or
+raw requests. Commands may prepare package text from another source before
+selecting that agent. A structural validator does not replace review of the
+requirements. Package readiness does not authorize external writes.
 
-An exact Issue Reference determines the target repository. Direct input uses
-the current checkout's unambiguous Git remote. In both cases, the resulting
-implementation must be safe to execute. Complete packages are validated before
-admission; for raw prose, the Orchestrator resolves executable details during
-planning and blocks if a required user decision remains. `spec-orchestrator`
-remains the default primary agent, and plain text does not automatically switch
-primary agents. Select `implementation-orchestrator` manually before supplying
-implementation input outside `/implement`.
-
-Generated local or issue packages contain exactly one readiness field:
-`status: SPEC_APPROVED_BY_AGENT` for a complete agent-finalized package, or
-`status: SPEC_APPROVED_BY_USER` when the user explicitly approved that concrete
-package. Either can start local implementation; external writes still require
-separate runtime authorization.
-
-Existing installations link command files individually. Rerun the installer to
-add `/implement`, then restart OpenCode.
-
-See [`docs/agents/agent-workflow.md`](docs/agents/agent-workflow.md) for the
-agent map and
-[`docs/agents/orchestrator-state-machine.md`](docs/agents/orchestrator-state-machine.md)
-for the implementation workflow contract.
+Rerun the installer to link the contract and validator, then restart OpenCode.
 
 ## Lifecycle Tests
 

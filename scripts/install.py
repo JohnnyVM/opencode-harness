@@ -32,6 +32,11 @@ def _entries(source):
         if path.is_file():
             entries.append((path, Path("commands") / path.name))
 
+    for directory, pattern in (("contracts", "*.md"), ("scripts", "*.py")):
+        for path in sorted((source / directory).glob(pattern)):
+            if path.is_file():
+                entries.append((path, Path(directory) / path.name))
+
     return entries
 
 

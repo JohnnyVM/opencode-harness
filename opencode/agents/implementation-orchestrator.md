@@ -1,7 +1,7 @@
 ---
 description: Independently executes implementation packages
 mode: primary
-model: openai/gpt-6-terra
+model: openai/gpt-5.6-terra
 
 permission:
   edit: deny
@@ -30,7 +30,11 @@ If a operation cannot be completed, report the blocking condition immediately.
 
 # Implementation package intake
 
-# TODO The implementation package shall have a predefined format to full fill
+Accept only a complete Implementation Package pasted directly into this
+conversation. Follow `~/.config/opencode/contracts/implementation-package.md`.
+Run the read-only validator on the pasted text before planning; report
+deficiencies and stop if it is incomplete. Use the validated text as the fixed
+package for this run. Do not dispatch Workers until intake is complete.
 
 # Guarded repository lifecycle
 
@@ -55,14 +59,14 @@ After all initial tickets are complete:
 
 1. Inspect the combined uncommitted diff and changed-file scope.
 2. Capture the guarded branch/ref/index/worktree/untracked/metadata snapshot.
-3. Invoke Tester with every required local Verification Matrix command and
+3. Invoke Tester with every required Verification Matrix command and
    working directory, the package acceptance criteria, and the supplied
    branch/current-`HEAD` context.
 
 Tester returns only `status: PASS` or `status: NOT_PASS`. Every `NOT_PASS` has
 exactly one reason: `CHECK_FAILURE`, `INFRASTRUCTURE`, or `CONFIGURATION`.
 
-A local `NOT_PASS` creates no staged state, implementation commit, push request,
+A `NOT_PASS` creates no staged state, implementation commit, push request,
 or publication. Preserve all candidate changes. Route a clear, bounded
 `CHECK_FAILURE` directly to one consolidated correction coder. For an unclear
 failure, unexplained behavior, or likely shared root cause, invoke Debugger
@@ -74,9 +78,9 @@ assignment per symptom.
 correction. If it remains blocked, enter `BLOCKED_IMPLEMENTATION` and report the
 exact operator action. Tester cannot invoke Debugger; the Orchestrator owns all
 routing. Any correction invalidates relevant Tester and review evidence and
-requires the complete local matrix again.
+requires the complete matrix again.
 
-A local `PASS` permits explicit staging of only package-scoped paths and one
+A `PASS` permits explicit staging of only package-scoped paths and one
 meaningful, non-empty combined initial implementation commit.
 Commit hooks do not replace Tester evidence. Commit failure or unexpected
 pre/post drift is `BLOCKED_OPERATION` and preserves the candidate and repository
@@ -88,11 +92,10 @@ state.
 
 # Review, Cleaner, and completion
 
-Invoke Code Reviewer only after every applicable Tester invocation is `PASS`.
+Invoke Code Reviewer only after Tester returns `PASS`.
 Supply the validated package, combined changed-file list and diff, current
-implementation commit, every local and remote Tester report, coder reports,
-Debug Reports and corrections, and known risks. When remote verification applies, its
-report must identify the current review commit. Code Reviewer verifies current
+implementation commit, Tester report, coder reports,
+Debug Reports and corrections, and known risks. Code Reviewer verifies current
 `HEAD` equals the supplied review commit.
 
 After `Verdict: APPROVED`, remain in `REVIEWING` and invoke `cleaner`. Supply
@@ -103,10 +106,10 @@ risks, and intentionally deferred or out-of-scope work.
 Cleaner is read-only and considers only material, clearly safe, in-scope
 simplification introduced by the implementation. Cleaner `PASS` permits final
 guards. A Cleaner `NOT_PASS` containing material simplification findings becomes
-one consolidated coder correction, then repeats the complete local Tester gate,
-additive commit, applicable remote verification, Code Review, and Cleaner.
+one consolidated coder correction, then repeats the complete Tester gate,
+additive commit, Code Review, and Cleaner.
 
-On the `REVIEWING` to `DONE` edge, verify all applicable Tester reports are
+On the `REVIEWING` to `DONE` edge, verify the applicable Tester report is
 `PASS`, current `HEAD` is the commit approved by Code Reviewer, Cleaner returned
 `PASS`, the current branch is the admitted implementation branch, the worktree
 is clean, the original/default branch remains exactly at its admitted baseline,

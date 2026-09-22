@@ -54,7 +54,7 @@ duplicate section. Add or update only these subsections:
 
 ### Issue tracker
 
-Issues are tracked in GitHub Issues; specifications may also be local or direct input. See `docs/issue-tracker.md`.
+Issues are tracked in GitHub Issues; specifications may also be local. See `docs/issue-tracker.md`.
 
 ### Domain docs
 
