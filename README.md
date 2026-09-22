@@ -58,9 +58,9 @@ An exact Issue Reference determines the target repository. Direct input uses
 the current checkout's unambiguous Git remote. In both cases, the resulting
 implementation must be safe to execute. Complete packages are validated before
 admission; for raw prose, the Orchestrator resolves executable details during
-planning and blocks if a required user decision remains. `spec-design` remains
-the default primary agent, and plain text does not automatically switch primary
-agents. Select `implementation-orchestrator` manually before supplying
+planning and blocks if a required user decision remains. `spec-orchestrator`
+remains the default primary agent, and plain text does not automatically switch
+primary agents. Select `implementation-orchestrator` manually before supplying
 implementation input outside `/implement`.
 
 Generated local or issue packages contain exactly one readiness field:

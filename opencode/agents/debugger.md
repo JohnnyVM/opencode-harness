@@ -101,7 +101,7 @@ Use exactly one classification per report:
   unless production behavior is also wrong.
 - `DESIGN_SPEC_PROBLEM`: requirement, architecture, interface, or acceptance
   criterion is missing, contradictory, or incorrect; route to the user for
-  resolution through `spec-design`.
+  resolution through `spec-orchestrator`.
 - `ENVIRONMENT_PROBLEM`: toolchain, dependency, credential, service, runner,
   or platform prevents valid verification; route to the orchestrator/operator.
 - `INCONCLUSIVE`: evidence is insufficient to identify root cause; do not

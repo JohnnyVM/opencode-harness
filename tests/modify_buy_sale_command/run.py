@@ -1,4 +1,4 @@
-"""Ask spec-design for a package, then ask the orchestrator to implement it."""
+"""Ask spec-orchestrator for a package, then ask the orchestrator to implement it."""
 
 import os
 from pathlib import Path
@@ -28,7 +28,7 @@ capture_agents(
     artifacts=Path(os.environ["TEST_ARTIFACTS"]),
     harness=Path(__file__).resolve().parents[2],
     invocations=[
-        {"stage": "spec-design", "agent": "spec-design", "prompt": PROMPT},
+        {"stage": "spec-orchestrator", "agent": "spec-orchestrator", "prompt": PROMPT},
         {
             "stage": "implementation",
             "agent": "implementation-orchestrator",

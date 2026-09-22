@@ -7,10 +7,6 @@ This repository represents a configuration for opencode.
 - Agents are stored in `opencode/agents/`.
 - Direct commands are stored in `opencode/commands/<name>.md`.
 - Preserve the existing opencode configuration schema and conventions when making changes.
-- Orchestrator states and lifecycle rules live in `docs/agents/orchestrator-state-machine.md`.
-- If test dependencies are missing, create a project-local `.venv`, synchronize
-  the project's declared dependencies into it, and run the tests through that
-  environment.
 
 ## Agent skills
 
@@ -35,6 +31,3 @@ The `/setup-matt-pocock-skills` command is available for explicit user setup of
 repository conventions. It is triggered by the user directly, not automatically
 by the system.
 
-`spec-design` remains the default primary agent. Plain text does not
-automatically switch primary agents; select `implementation-orchestrator`
-manually before supplying implementation input outside `/implement`.

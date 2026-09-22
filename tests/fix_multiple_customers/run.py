@@ -1,4 +1,4 @@
-"""Ask spec-design to analyze issue 46, then ask the orchestrator to implement it."""
+"""Ask spec-orchestrator to analyze issue 46, then ask the orchestrator to implement it."""
 
 import os
 from pathlib import Path
@@ -14,8 +14,8 @@ capture_agents(
     harness=Path(__file__).resolve().parents[2],
     invocations=[
         {
-            "stage": "spec-design",
-            "agent": "spec-design",
+            "stage": "spec-orchestrator",
+            "agent": "spec-orchestrator",
             "prompt": (
                 "Work autonomously. Analyze the attached issue, use recommended "
                 "defaults for non-product ambiguities, ask no questions, and follow "

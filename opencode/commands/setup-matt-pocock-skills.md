@@ -1,6 +1,6 @@
 ---
 description: Set up repository issue tracker and domain documentation conventions
-agent: spec-design
+agent: spec-orchestrator
 subtask: false
 ---
 

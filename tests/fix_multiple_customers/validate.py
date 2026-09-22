@@ -22,7 +22,7 @@ if act is None:
 
 validate_observability(
     artifacts,
-    expected_stages=("spec-design", "implementation"),
+    expected_stages=("spec-orchestrator", "implementation"),
     expected_models=("openai/gpt-5.6-sol", "openai/gpt-5.6-terra"),
 )
 
