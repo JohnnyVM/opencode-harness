@@ -1,7 +1,7 @@
 ---
 description: Reviews fully tested implementation for correctness and regressions
 mode: subagent
-model: openai/gpt-5.6-sol
+model: openai/gpt-6-sol
 permission:
   edit: deny
   question: deny

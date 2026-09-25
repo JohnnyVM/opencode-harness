@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime, timezone
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,34 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 TESTS = ROOT / "tests"
 PHASES = ("prepare.py", "run.py", "validate.py")
+MODEL_FLAGS = {
+    "spec_model": "TEST_SPEC_MODEL",
+    "implementation_model": "TEST_IMPLEMENTATION_MODEL",
+    "coder_light_model": "TEST_CODER_LIGHT_MODEL",
+    "coder_heavy_model": "TEST_CODER_HEAVY_MODEL",
+}
+ENABLED_MCPS_ENV = "TEST_ENABLED_MCPS"
+DISABLED_MCPS_ENV = "TEST_DISABLED_MCPS"
+MCP_NAMES = ("playwright", "ripwire")
+
+
+def model_id(value):
+    if (
+        not value
+        or "/" not in value
+        or any(not part for part in value.split("/"))
+        or any(char.isspace() for char in value)
+    ):
+        raise argparse.ArgumentTypeError("model must be in provider/model format")
+    return value
+
+
+def mcp_name(value):
+    if value not in MCP_NAMES:
+        raise argparse.ArgumentTypeError(
+            f"unknown MCP {value!r}; expected one of: {', '.join(MCP_NAMES)}"
+        )
+    return value
 
 
 def discover_tests(selected):
@@ -37,8 +66,25 @@ def discover_tests(selected):
     return tests, errors
 
 
-def run_test(test, workspace, artifacts):
+def cleanup_artifacts(tests):
+    """Remove persisted artifacts for the selected lifecycle tests."""
+    for test in tests:
+        artifacts = ROOT / "artifacts" / test.name
+        if artifacts.exists():
+            print(f"[{test.name}] removing previous artifacts", flush=True)
+            shutil.rmtree(artifacts)
+
+
+def run_test(test, workspace, artifacts, settings=None):
     environment = os.environ.copy()
+    settings = settings or {}
+    for key in MODEL_FLAGS.values():
+        environment.pop(key, None)
+    for name, value in settings.get("models", {}).items():
+        if value is not None:
+            environment[MODEL_FLAGS[name]] = value
+    environment[ENABLED_MCPS_ENV] = ",".join(settings.get("enabled_mcps", ()))
+    environment[DISABLED_MCPS_ENV] = ",".join(settings.get("disabled_mcps", ()))
     environment["TEST_WORKSPACE"] = str(workspace)
     environment["TEST_ARTIFACTS"] = str(artifacts)
     environment["PYTHONPATH"] = os.pathsep.join(
@@ -67,7 +113,23 @@ def run_test(test, workspace, artifacts):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("tests", nargs="*", help="test directory names (default: all)")
+    for name in MODEL_FLAGS:
+        parser.add_argument(
+            f"--{name.replace('_', '-')}",
+            type=model_id,
+            help="override the model for this agent (provider/model)",
+        )
+    parser.add_argument("--mcp", action="append", type=mcp_name, default=[], metavar="NAME",
+                        help="enable an MCP server; repeat for multiple servers")
+    parser.add_argument("--no-mcp", action="append", type=mcp_name, default=[], metavar="NAME",
+                        help="disable an MCP server; repeat for multiple servers")
+    parser.add_argument("--clean", action="store_true",
+                        help="remove previous artifacts for selected tests before running")
     arguments = parser.parse_args()
+    models = {name: getattr(arguments, name) for name in MODEL_FLAGS}
+    conflicting_mcps = sorted(set(arguments.mcp) & set(arguments.no_mcp))
+    if conflicting_mcps:
+        parser.error(f"MCPs cannot be both enabled and disabled: {', '.join(conflicting_mcps)}")
 
     tests, errors = discover_tests(arguments.tests)
     if errors:
@@ -77,6 +139,8 @@ def main():
     if not tests:
         print(f"No lifecycle tests found in {TESTS}", file=sys.stderr)
         return 1
+    if arguments.clean:
+        cleanup_artifacts(tests)
 
     failures = []
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
@@ -86,7 +150,11 @@ def main():
             workspace = workspace_root / test.name
             workspace.mkdir()
             artifacts = ROOT / "artifacts" / test.name / run_id
-            if not run_test(test, workspace, artifacts):
+            if not run_test(test, workspace, artifacts, {
+                "models": models,
+                "enabled_mcps": arguments.mcp,
+                "disabled_mcps": arguments.no_mcp,
+            }):
                 failures.append(test.name)
 
     print(f"\n{len(tests) - len(failures)}/{len(tests)} lifecycle tests passed")

@@ -134,6 +134,22 @@ class InstallerTests(unittest.TestCase):
                 self.assertTrue(destination.is_symlink())
                 self.assertEqual(os.readlink(destination), str(item.resolve()))
 
+    def test_implement_command_and_plugin_are_installed(self):
+        source = install.source_root() / "opencode"
+        command = source / "commands" / "implement.md"
+        plugin = source / "plugins" / "implement.js"
+        entries = dict(install._entries(source))
+        self.assertEqual(entries[command], Path("commands") / command.name)
+        self.assertEqual(entries[plugin], Path("plugins") / plugin.name)
+
+        with tempfile.TemporaryDirectory() as home:
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install.install(source, home), 0)
+            for item, folder in ((command, "commands"), (plugin, "plugins")):
+                destination = Path(home) / ".config" / "opencode" / folder / item.name
+                self.assertTrue(destination.is_symlink())
+                self.assertEqual(os.readlink(destination), str(item.resolve()))
+
 
 if __name__ == "__main__":
     unittest.main()

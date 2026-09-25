@@ -26,7 +26,8 @@ capture_agents(
         },
         {
             "stage": "implementation",
-            "agent": "implementation-orchestrator",
+            "agent": "spec-orchestrator",
+            "command": "implement",
             "prompt": ".scratch/fix-multiple-customers.md",
         },
     ],

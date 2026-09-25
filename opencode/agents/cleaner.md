@@ -1,7 +1,7 @@
 ---
 description: Performs a final read-only review for material safe simplifications introduced by an implementation
 mode: subagent
-model: openai/gpt-5.6-sol
+model: openai/gpt-6-sol
 
 permission:
   edit: deny

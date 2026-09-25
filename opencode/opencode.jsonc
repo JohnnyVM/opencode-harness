@@ -4,6 +4,11 @@
 	"lsp": true,
 	"subagent_depth": 1,
 	"mcp": {
+		"ripwire": {
+			"type": "local",
+			"command": ["ripwire", "--mcp"],
+			"enabled": true
+		},
 		"playwright": {
 			"type": "local",
 			"command": [

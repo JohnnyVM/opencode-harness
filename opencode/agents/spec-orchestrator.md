@@ -1,7 +1,7 @@
 ---
 description: Interactive specification designer responsible for discovery, research-guided grilling, architecture decisions, and complete implementation packages
 mode: primary
-model: openai/gpt-5.6-sol
+model: openai/gpt-6-sol
 
 permission:
   edit:

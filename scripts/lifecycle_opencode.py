@@ -10,6 +10,53 @@ import time
 
 
 PLUGIN = "opencode-trace@0.3.1"
+MODEL_ENV = {
+    "spec-orchestrator": "TEST_SPEC_MODEL",
+    "implementation-orchestrator": "TEST_IMPLEMENTATION_MODEL",
+    "coder-light": "TEST_CODER_LIGHT_MODEL",
+    "coder-heavy": "TEST_CODER_HEAVY_MODEL",
+}
+DEFAULT_MODELS = {
+    "spec-orchestrator": "openai/gpt-6-sol",
+    "implementation-orchestrator": "openai/gpt-6-luna",
+    "coder-light": "ovhcloud/qwen3-coder-30b-a3b-instruct",
+    "coder-heavy": "openai/gpt-6-luna",
+}
+MCP_NAMES = ("playwright", "ripwire")
+ENABLED_MCPS_ENV = "TEST_ENABLED_MCPS"
+DISABLED_MCPS_ENV = "TEST_DISABLED_MCPS"
+
+
+def selected_models():
+    """Return model overrides supplied by the lifecycle runner."""
+    return {agent: os.environ[key] for agent, key in MODEL_ENV.items() if os.environ.get(key)}
+
+
+def expected_primary_models():
+    models = selected_models()
+    return tuple(
+        models.get(agent, DEFAULT_MODELS[agent])
+        for agent in ("spec-orchestrator", "implementation-orchestrator")
+    )
+
+
+def selected_mcps(name):
+    """Return named MCPs selected by the lifecycle runner."""
+    values = tuple(filter(None, os.environ.get(name, "").split(",")))
+    unknown = sorted(set(values) - set(MCP_NAMES))
+    if unknown:
+        raise ValueError(f"unknown MCPs in {name}: {', '.join(unknown)}")
+    return values
+
+
+def mcp_config():
+    """Disable MCPs by default, then apply explicit runner selections."""
+    config = {name: {"enabled": False} for name in MCP_NAMES}
+    for name in selected_mcps(ENABLED_MCPS_ENV):
+        config[name]["enabled"] = True
+    for name in selected_mcps(DISABLED_MCPS_ENV):
+        config[name]["enabled"] = False
+    return config
 
 
 def _require_executable(name):
@@ -45,14 +92,33 @@ def capture_agents(repository, artifacts, harness, invocations):
     """Run agent invocations and persist raw sessions, traces, and metrics."""
     opencode = _require_executable("opencode")
     environment = os.environ.copy()
+    agent_config: dict[str, dict] = {
+        "implementation-orchestrator": {
+            "permission": {
+                "external_directory": {
+                    str(harness / "opencode"): "allow",
+                    str(harness / "opencode/**"): "allow",
+                },
+            },
+        },
+    }
+    for agent, model in selected_models().items():
+        agent_config.setdefault(agent, {})["model"] = model
     environment.update(
         {
             "OPENCODE_CONFIG": str(harness / "opencode" / "opencode.jsonc"),
             "OPENCODE_CONFIG_DIR": str(harness / "opencode"),
             "OPENCODE_CONFIG_CONTENT": json.dumps(
                 {
-                    "mcp": {"playwright": {"enabled": False}},
+                    "mcp": mcp_config(),
                     "plugin": [PLUGIN],
+                    "permission": {
+                        "external_directory": {
+                            str(Path.home() / ".config/opencode/contracts/**"): "allow",
+                            str(Path.home() / ".config/opencode/scripts/**"): "allow",
+                        },
+                    },
+                    "agent": agent_config,
                 }
             ),
             "OPENCODE_DISABLE_MODELS_FETCH": "1",
@@ -149,8 +215,10 @@ def capture_agents(repository, artifacts, harness, invocations):
             "--thinking",
             "--dir",
             str(repository),
-            invocation["prompt"],
         ]
+        if invocation.get("command"):
+            command.extend(("--command", invocation["command"]))
+        command.append(invocation["prompt"])
         for path in invocation.get("files", ()):
             command.extend(("--file", str(path)))
 
@@ -226,6 +294,7 @@ def capture_agents(repository, artifacts, harness, invocations):
         json.dumps(
             {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
+                "mcp": mcp_config(),
                 "stages": stages,
                 "totals": totals,
                 "opencode_trace": {
@@ -252,6 +321,16 @@ def validate_observability(artifacts, expected_stages, expected_models):
     models = {session["model"] for session in sessions}
     if not set(expected_models).issubset(models):
         raise AssertionError(f"missing expected models: {sorted(set(expected_models) - models)}")
+    for stage, expected in zip(metrics["stages"], expected_models):
+        stage_models = {session["model"] for session in stage["sessions"]}
+        if expected not in stage_models:
+            raise AssertionError(f"{stage['stage']} is missing expected model: {expected}")
+    configured_models = selected_models()
+    for agent in ("coder-light", "coder-heavy"):
+        expected = configured_models.get(agent, DEFAULT_MODELS[agent])
+        actual = {session["model"] for session in sessions if session["agent"] == agent}
+        if actual and actual != {expected}:
+            raise AssertionError(f"{agent} used {sorted(actual)}, expected {expected}")
     tokens = metrics["totals"]["tokens"]
     if tokens["input"] <= 0 or tokens["output"] <= 0:
         raise AssertionError(f"invalid token totals: {tokens}")
@@ -320,3 +399,20 @@ def validate_observability(artifacts, expected_stages, expected_models):
         f"trace_records={len(trace_records)}"
     )
     print(f"Raw artifacts: {artifacts}")
+
+
+def validate_implementation_handoff(artifacts, package):
+    """Confirm /implement delivered the exact spec to the intended primary agent."""
+    expected = package.read_text()
+    sessions = artifacts / "implementation" / "sessions"
+    for path in sessions.glob("*.json"):
+        payload = json.loads(path.read_text())
+        for message in payload.get("messages", []):
+            if message.get("info", {}).get("role") != "user":
+                continue
+            if message["info"].get("agent") != "implementation-orchestrator":
+                continue
+            if any(part.get("type") == "text" and part.get("text") == expected
+                   for part in message.get("parts", [])):
+                return
+    raise AssertionError("/implement did not deliver the full package to implementation-orchestrator")

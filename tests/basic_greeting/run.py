@@ -1,4 +1,4 @@
-"""Ask spec-orchestrator for a package, then ask the orchestrator to implement it."""
+"""Generate a package from a user request, then implement it via /implement."""
 
 import os
 from pathlib import Path
@@ -7,19 +7,13 @@ from scripts.lifecycle_opencode import capture_agents
 
 
 PROMPT = """Work autonomously and generate an implementation package for this feature.
-Do not ask questions: use your recommended defaults for non-product ambiguities,
+Do not ask questions: use recommended defaults for non-product ambiguities,
 record them as assumptions, and write no file except the requested package.
 
-Modify the @buy and @sale commands to accept default_code as a product
-identifier. An all-digit product argument is a barcode; other product arguments
-are default_code values. A partner name can be one word, and names containing
-spaces must be quoted, for example "name surname".
+Change the greeting behavior so greet(name) returns the exact text
+"Hello, <name>!". Update the focused automated test for this behavior.
 
-example:
-@buy "azeta s.l" FC045 9999999999
-
-Generate the complete agent-approved spec file at
-.scratch/modify-buy-sale-command.md
+Generate the complete agent-approved spec file at .scratch/basic-greeting.md.
 """
 
 workspace = Path(os.environ["TEST_WORKSPACE"])
@@ -33,7 +27,7 @@ capture_agents(
             "stage": "implementation",
             "agent": "spec-orchestrator",
             "command": "implement",
-            "prompt": ".scratch/modify-buy-sale-command.md",
+            "prompt": ".scratch/basic-greeting.md",
         },
     ],
 )

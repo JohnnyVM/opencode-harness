@@ -5,11 +5,10 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from scripts.lifecycle_opencode import validate_observability
+from scripts.lifecycle_opencode import expected_primary_models, validate_implementation_handoff, validate_observability
 
 
 VALIDATION_COMMIT = "992714fce90ff9787f1f026d03a9f97da708c074"
-START_COMMIT = "28934acb77f75d47e9b4b0c5058294cd3db6a513"
 IMPLEMENTATION_BRANCH = "e2e/fix-multiple-customers"
 WORKFLOW = ".github/workflows/test-sale.yml"
 
@@ -23,18 +22,9 @@ if act is None:
 validate_observability(
     artifacts,
     expected_stages=("spec-orchestrator", "implementation"),
-    expected_models=("openai/gpt-5.6-sol", "openai/gpt-5.6-terra"),
+    expected_models=expected_primary_models(),
 )
-
-implemented_head = subprocess.run(
-    ["git", "rev-parse", "HEAD"],
-    cwd=repository,
-    text=True,
-    stdout=subprocess.PIPE,
-    check=True,
-).stdout.strip()
-if implemented_head == START_COMMIT:
-    raise AssertionError("implementation did not create a commit")
+validate_implementation_handoff(artifacts, repository / ".scratch/fix-multiple-customers.md")
 
 implemented_branch = subprocess.run(
     ["git", "branch", "--show-current"],
