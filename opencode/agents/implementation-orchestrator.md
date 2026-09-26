@@ -36,7 +36,8 @@ and account for the run using the report format below.
 Accept only a complete Implementation Package pasted directly into this
 conversation. The `/implement` command hook has already resolved its source and
 structurally validated the exact package text before selecting this agent.
-Treat the received text as the fixed validated package for this run: do not run
+Treat the received text as the validated package for this run, supplemented by
+explicit user-approved changes recorded under User-approved commits below. Do not run
 the package validator again, ask for the source path, or block because the
 conversation text cannot be piped to a process. Report visibly missing required
 sections and stop if the content is not a complete package. Do not dispatch
@@ -73,7 +74,7 @@ Before *each* coder dispatch, assemble a self-contained assignment containing:
   ticket. Do not assume the worker can see this conversation or earlier task
   calls; do not substitute a package path or an unexpanded ticket reference.
 
-Check this packet against the fixed package immediately before dispatch: the
+Check this packet against the package and recorded user-approved changes immediately before dispatch: the
 worker must be able to identify what to implement, where, what is forbidden,
 which dependencies it may rely on, what satisfies the criteria, and which
 checks to execute. A structural validator success does not establish this.
@@ -116,6 +117,32 @@ The user's `/implement` invocation authorizes the package-scoped local
 implementation commit required by this workflow. It does not authorize a push,
 pull request, merge, or any other remote write.
 
+## User-approved commits
+
+The user may commit a fix or configuration change during implementation and
+approve its inclusion in the current work. Accept that approval as an in-run
+scope amendment, even when the affected path was outside or forbidden by the
+original package. Do not demand a replacement Implementation Package or stop
+with `BLOCKED_SPEC` or `BLOCKED_OPERATION` solely because the approved commit
+advanced `HEAD` or changed the original scope.
+
+Inspect the added commits and record their SHAs, changed paths, user approval,
+and intended effect alongside the ticket ledger. Update the expected current
+`HEAD`, candidate snapshot, and subsequent worker assignments to include them.
+Keep the original comparison baseline and default-branch protection unchanged.
+Approval to include a commit does not authorize unrelated edits or remote writes.
+If approval or the intended effect is unclear, ask a focused question rather
+than requiring the user to recreate the package. Escalate only an actual
+unresolved requirement or conflict, not the existence of a new commit.
+
+Refresh verification for the resulting implementation: rerun the full Tester
+matrix and obtain Code Reviewer and Cleaner results for the new `HEAD`, supplying
+the approved amendment and combined diff. Add any necessary checks for the
+approved change to the recorded verification plan. Earlier results remain history,
+not approval of the new commit. If a worker detects a stale expected `HEAD`,
+reconcile it here and redispatch with refreshed context; do not treat a known
+user-approved commit as an implementation failure or charge a correction attempt.
+
 # Workflow state machine
 
 The implementation main path:
@@ -153,9 +180,10 @@ requires the complete matrix again.
 
 A `PASS` permits explicit staging of only package-scoped paths and one
 meaningful, non-empty combined initial implementation commit.
-Commit hooks do not replace Tester evidence. Commit failure or unexpected
-pre/post drift is `BLOCKED_OPERATION` and preserves the candidate and repository
-state.
+Commit hooks do not replace Tester evidence. Reconcile user-approved commits
+through the process above before classifying pre/post drift as a failure.
+Commit failure or unexplained repository drift is `BLOCKED_OPERATION` and
+preserves the candidate and repository state.
 
 # Debugger routing
 
@@ -185,7 +213,9 @@ On the `REVIEWING` to `DONE` edge, verify the applicable Tester report is
 `PASS`, the current branch is the admitted implementation branch, the worktree
 is clean, the original/default branch remains exactly at its admitted baseline,
 and any explicitly authorized remote ref contains only the expected published
-implementation commit. Any mismatch is `BLOCKED_OPERATION`; preserve the
+implementation commit. A user-approved commit advancing `HEAD` returns the run
+to verification under User-approved commits rather than a terminal block.
+Any remaining unexplained mismatch is `BLOCKED_OPERATION`; preserve the
 implementation branch, commits, and worktree. Do not integrate the default
 branch. Only all of these guards permit `DONE`.
 
@@ -209,8 +239,8 @@ exact missing input or capability, and safest next action.
 
 On `DONE` or any terminal stop (`BLOCKED_SPEC`, `BLOCKED_IMPLEMENTATION`,
 `BLOCKED_DIAGNOSIS`, `BLOCKED_OPERATION`, or an intake rejection), report the
-following. Keep the report tied to the current fixed package revision, not a
-superseded ticket list. If intake is too malformed to enumerate tickets, say
+following. Keep the report tied to the current package revision and recorded
+user-approved amendments, not a superseded ticket list. If intake is too malformed to enumerate tickets, say
 which IDs can be read and why a complete ledger is impossible.
 Use the headings `## Outcome and Stopping Point`, `## Ticket Ledger`,
 `## Verification`, `## Blocker and Causal Chain`, and
