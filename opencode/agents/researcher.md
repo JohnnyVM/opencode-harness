@@ -1,6 +1,7 @@
 ---
 description: Researches focused engineering questions to support specification design and architectural decisions
 mode: subagent
+model: openai/gpt-6-sol
 
 permission:
   edit: deny
