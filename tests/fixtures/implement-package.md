@@ -16,6 +16,7 @@ Display saved items.
 - Allowed: src/items
 - Forbidden: src/auth
 - Criteria: AC1
+- Approach: Render saved items from existing storage in the public view.
 ## Acceptance Criteria
 - AC1: Saved items are displayed on the view.
 ## Verification Commands

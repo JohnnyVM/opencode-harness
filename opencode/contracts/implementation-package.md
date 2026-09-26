@@ -1,4 +1,4 @@
-# Implementation Package contract (version 1)
+# Implementation Package contract (version 2)
 
 This is the complete, pasteable handoff to the Implementation Orchestrator.
 Users and the Spec Orchestrator use the same template. Paste the filled-in
@@ -18,8 +18,19 @@ the author remains responsible for the adequacy and truth of the decisions.
 - Fill every section below except Further Notes. Use `None` for no risks,
   unknowns, or out-of-scope items. Blocking product unknowns cannot be admitted.
 - Tickets use unique `T` IDs; dependencies name existing tickets or `None`.
-  Criteria name existing `AC` IDs. A ticket needs an objective, allowed and
-  forbidden scope, and criteria. Dependencies cannot form cycles.
+  Criteria name existing `AC` IDs. A ticket needs an objective, concrete allowed
+  scope, forbidden scope, criteria, and an `Approach` describing what to build,
+  key interfaces or files, and how dependent work fits together. Dependencies
+  cannot form cycles. Every acceptance criterion must belong to a ticket.
+- The complete package must let a worker implement each ticket using only its
+  assigned package content and the repository. Move execution-relevant decisions
+  from the specification conversation into this package. Do not use a previous
+  package, conversation, or revision record as a source of missing requirements.
+  A revision record is optional history; a revised package restates all current
+  tickets, decisions, criteria, and checks. Superseded tickets are not active.
+- The validator checks field presence and references, not whether the approach,
+  scope, or verification genuinely suffices. Review each ticket from a worker's
+  perspective before handoff.
 - Each verification check needs an exact command, working directory,
   prerequisites, and expected result.
 - Do not leave template placeholders, `TBD`, or `TODO` in a final package.
@@ -57,6 +68,7 @@ status: SPEC_APPROVED_BY_AGENT
 - Allowed: [Files or directories]
 - Forbidden: [Files or directories, or None]
 - Criteria: AC1
+- Approach: [Concrete implementation steps, files/interfaces and dependent output]
 
 ## Acceptance Criteria
 - AC1: [Observable outcome]

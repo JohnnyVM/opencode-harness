@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import time
@@ -416,3 +417,38 @@ def validate_implementation_handoff(artifacts, package):
                    for part in message.get("parts", [])):
                 return
     raise AssertionError("/implement did not deliver the full package to implementation-orchestrator")
+
+
+def validate_implementation_report(artifacts, package):
+    """Confirm the primary agent's final report accounts for every package ticket."""
+    tickets = re.findall(r"^### (T\d+)\s+[—-]", package.read_text(), re.MULTILINE)
+    if not tickets:
+        raise AssertionError("implementation package has no tickets")
+    sessions = artifacts / "implementation" / "sessions"
+    for path in sessions.glob("*.json"):
+        payload = json.loads(path.read_text())
+        messages = payload.get("messages", [])
+        if not any(message.get("info", {}).get("role") == "user"
+                   and message.get("info", {}).get("agent") == "implementation-orchestrator"
+                   for message in messages):
+            continue
+        replies = ["\n".join(part.get("text", "") for part in message.get("parts", [])
+                              if part.get("type") == "text")
+                   for message in messages
+                   if message.get("info", {}).get("role") == "assistant"
+                   and message.get("info", {}).get("agent") == "implementation-orchestrator"]
+        if not replies:
+            raise AssertionError("implementation-orchestrator returned no final report")
+        report = replies[-1]
+        required = ("Outcome and Stopping Point", "Ticket Ledger", "Verification",
+                    "Blocker and Causal Chain", "Remaining Work and Safest Next Action")
+        for heading in required:
+            if f"## {heading}" not in report:
+                raise AssertionError(f"implementation report missing {heading}")
+        ledger = report.split("## Ticket Ledger", 1)[1].split("## Verification", 1)[0]
+        entries = re.findall(r"^- (T\d+): (completed|partial|blocked|not started)\b",
+                             ledger, re.MULTILINE)
+        if sorted(ticket for ticket, _ in entries) != sorted(tickets):
+            raise AssertionError(f"ticket ledger {entries} does not match {tickets}")
+        return
+    raise AssertionError("implementation-orchestrator primary session not found")

@@ -18,6 +18,34 @@ class LifecycleModelTests(unittest.TestCase):
                 run_tests.model_id(value)
         self.assertEqual(run_tests.model_id("provider/model"), "provider/model")
 
+    def test_report_requires_each_package_ticket(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            package = root / "package.md"
+            package.write_text("## Tickets and Dependencies\n### T1 — First\n### T2 — Second\n")
+            sessions = root / "implementation" / "sessions"
+            sessions.mkdir(parents=True)
+            report = ("## Outcome and Stopping Point\nStopped in IMPLEMENTING.\n"
+                      "## Ticket Ledger\n- T1: partial — src/one.py\n"
+                      "- T2: not started — dependency T1\n"
+                      "## Verification\nTester not run.\n"
+                      "## Blocker and Causal Chain\nT1 blocked T2.\n"
+                      "## Remaining Work and Safest Next Action\nFinish T1 then run Tester.\n")
+            session = {"messages": [
+                {"info": {"role": "user", "agent": "implementation-orchestrator"}},
+                {"info": {"role": "assistant", "agent": "implementation-orchestrator"},
+                 "parts": [{"type": "text", "text": report}]},
+            ]}
+            path = sessions / "root.json"
+            path.write_text(json.dumps(session))
+            lifecycle_opencode.validate_implementation_report(root, package)
+            session["messages"][1]["parts"][0]["text"] = report.replace(
+                "- T2: not started — dependency T1\n", ""
+            )
+            path.write_text(json.dumps(session))
+            with self.assertRaisesRegex(AssertionError, "ticket ledger"):
+                lifecycle_opencode.validate_implementation_report(root, package)
+
     def test_mcp_name_rejects_unknown_servers(self):
         self.assertEqual(run_tests.mcp_name("ripwire"), "ripwire")
         with self.assertRaises(argparse.ArgumentTypeError):

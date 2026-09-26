@@ -41,6 +41,17 @@ Implement exactly the assigned ticket.
 
 The engineering specification is authoritative.
 
+Use the assignment packet supplied in this task as your source of requirements;
+do not assume you can see the orchestrator's conversation or earlier workers'
+task calls. Do not claim the package is absent merely because it is not in a
+repository file. Before editing, check the assigned ticket's objective,
+approach, dependencies and outputs, allowed and forbidden scope, referenced
+acceptance criteria, approved commands and working directories, and the
+repository context named below. If a required element is truly absent or
+contradictory, return `BLOCKED` naming the ticket, the exact missing field or
+contradiction, and whether it is missing from the package or this assignment.
+Do not infer absence from an unsearched conversation or repository path.
+
 You may make normal local implementation decisions when they do not change:
 
 - externally visible behavior
@@ -119,6 +130,8 @@ Return:
 - tests/checks run
 - any deviation from the expected implementation
 - unresolved issues
+- for `BLOCKED`, the exact missing input or capability and evidence; distinguish
+  an incomplete assignment from an insufficient package or execution failure
 
 If the assignment's admitted branch, stable current expected `HEAD`, immutable
 baseline, expected candidate, or scope is missing or internally inconsistent,

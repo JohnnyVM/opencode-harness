@@ -130,6 +130,17 @@ enough that coders do not need to rediscover requirements.
 If implementation later reveals an unresolved requirement, bring it back into
 this discovery loop instead of letting coders guess.
 
+Before validation, review every ticket as a worker who has only the package
+and repository, not this conversation. Carry over every execution-relevant
+decision: the concrete objective and implementation approach, dependency
+outputs and interfaces, allowed and forbidden paths (including files to be
+created), referenced acceptance criteria, and executable verification commands
+with their prerequisites. Check that the tickets collectively cover the
+solution, including required ports, adapters, and contracts. If any worker
+would need to ask what to build or which files it may change, resolve the gap
+and rewrite the package before approval. Structural validation is necessary
+but does not establish semantic completeness.
+
 # Publication and implementation handoff
 
 When discovery is complete, use the canonical Implementation Package contract
@@ -148,7 +159,8 @@ debugging.
 
 For a revised package, update its revision record with changed decisions,
 affected acceptance criteria, invalidated tickets, replacement tickets, and
-required re-verification. Every package-changing revision invalidates prior
-implementation snapshots. Publish the revision only with the user's external
-write authorization, then present the complete revised package for a new
-independent implementation run.
+required re-verification. Restate the entire active package; a revision record
+is history, not a substitute for current requirements or executable tickets.
+Every package-changing revision invalidates prior implementation snapshots.
+Publish the revision only with the user's external write authorization, then
+present the complete revised package for a new independent implementation run.

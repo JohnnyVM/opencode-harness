@@ -43,7 +43,9 @@ installation, restart OpenCode to load the new configuration.
 Create a complete package using
 [`opencode/contracts/implementation-package.md`](opencode/contracts/implementation-package.md).
 The user can fill in the template directly, or `spec-orchestrator` can prepare
-it. Validate the finished text before handoff:
+it. Version 2 requires an `Approach` for every ticket; existing packages must
+add this field before `/implement` can accept them. Validate the finished text
+before handoff:
 
 ```bash
 python3 opencode/scripts/validate_implementation_package.py < package.md

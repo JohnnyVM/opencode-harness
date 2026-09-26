@@ -1,4 +1,4 @@
-"""Read-only, structural validation of a pasted Implementation Package (v1)."""
+"""Read-only, structural validation of a pasted Implementation Package (v2)."""
 
 import re
 import sys
@@ -9,7 +9,7 @@ SECTIONS = (
     "Testing Decisions", "Tickets and Dependencies", "Acceptance Criteria",
     "Verification Commands", "Risks", "Explicit Unknowns", "Out of Scope",
 )
-FIELDS = ("Dependencies", "Allowed", "Forbidden", "Criteria")
+FIELDS = ("Dependencies", "Allowed", "Forbidden", "Criteria", "Approach")
 LOCAL_FIELDS = ("Command", "Working directory", "Prerequisites", "Expected")
 STATUS = re.compile(r"^status:\s*(\S.*)$", re.MULTILINE)
 HEADING = re.compile(r"^## (.+?)\s*$", re.MULTILINE)
@@ -82,7 +82,12 @@ def validate(text):
         errors.append("Acceptance Criteria: requires at least one AC criterion")
 
     graph = {}
+    covered_criteria = set()
     for ticket_id, fields in tickets.items():
+        if fields.get("Allowed", "").lower() == "none":
+            errors.append(f"{ticket_id}: Allowed requires concrete scope")
+        if fields.get("Approach", "").lower() == "none":
+            errors.append(f"{ticket_id}: Approach requires implementation detail")
         dependencies = fields.get("Dependencies", "None")
         deps = [] if dependencies == "None" else [x.strip() for x in dependencies.split(",")]
         graph[ticket_id] = deps
@@ -92,6 +97,10 @@ def validate(text):
         for criterion in fields.get("Criteria", "").split(","):
             if criterion.strip() and criterion.strip() not in criteria:
                 errors.append(f"{ticket_id}: unknown criterion {criterion.strip()}")
+            elif criterion.strip():
+                covered_criteria.add(criterion.strip())
+    for criterion in sorted(criteria.keys() - covered_criteria):
+        errors.append(f"unassigned criterion: {criterion}")
     visited = set()
     active = set()
 

@@ -32,11 +32,13 @@ Display saved items.
 - Allowed: src/items
 - Forbidden: src/auth
 - Criteria: AC1
+- Approach: Render saved items from existing storage in the public view.
 ### T2 — Verify view
 - Dependencies: T1
 - Allowed: tests/items
 - Forbidden: src/auth
 - Criteria: AC1
+- Approach: Add a view test exercising the saved-items rendering.
 ## Acceptance Criteria
 - AC1: Saved items are displayed on the view.
 ## Verification Commands
@@ -81,6 +83,27 @@ class ValidatorTests(unittest.TestCase):
         errors = validator.validate(changed)
         self.assertTrue(any("cyclic ticket dependencies" in error for error in errors))
         self.assertIn("T1: unknown criterion AC9", errors)
+
+    def test_rejects_missing_or_empty_approach(self):
+        for replacement in ("", "- Approach: None\n", "- Approach: \n"):
+            with self.subTest(replacement=replacement):
+                changed = PACKAGE.replace(
+                    "- Approach: Render saved items from existing storage in the public view.\n",
+                    replacement,
+                )
+                self.assertTrue(
+                    any("Approach" in error and error.startswith("T1:")
+                        for error in validator.validate(changed))
+                )
+
+    def test_rejects_scope_without_paths_and_unassigned_criterion(self):
+        changed = PACKAGE.replace("- Allowed: src/items", "- Allowed: None", 1)
+        changed = changed.replace(
+            "## Verification Commands", "- AC2: Saved items have labels.\n## Verification Commands"
+        )
+        errors = validator.validate(changed)
+        self.assertIn("T1: Allowed requires concrete scope", errors)
+        self.assertIn("unassigned criterion: AC2", errors)
 
     def test_rejects_incomplete_checks_and_blocking_unknowns(self):
         changed = PACKAGE.replace("- Working directory: .\n", "")

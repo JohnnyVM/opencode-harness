@@ -8,6 +8,7 @@ import unittest
 from scripts.lifecycle_opencode import (
     expected_primary_models,
     validate_implementation_handoff,
+    validate_implementation_report,
     validate_observability,
 )
 
@@ -24,6 +25,7 @@ validate_observability(
     expected_models=(expected_primary_models()[1],),
 )
 validate_implementation_handoff(artifacts, workspace / "issue-package.md")
+validate_implementation_report(artifacts, workspace / "issue-package.md")
 
 branch = subprocess.run(
     ["git", "branch", "--show-current"],
