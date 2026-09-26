@@ -64,6 +64,8 @@ class SpecAgentGuidanceTests(unittest.TestCase):
         self.assertIn("Agent-facing documentation recommendations", code_pattern_content)
         self.assertIn("Target file/location", code_pattern_content)
         self.assertIn("Proposed concrete wording/action", code_pattern_content)
+        self.assertIn("Evidence", code_pattern_content)
+        self.assertIn("Expected benefit", code_pattern_content)
         self.assertIn("Reason", code_pattern_content)
         self.assertIn("Applicability", code_pattern_content)
         

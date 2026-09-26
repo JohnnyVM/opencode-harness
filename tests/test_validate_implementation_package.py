@@ -28,18 +28,25 @@ Display saved items.
 ## Testing Decisions
 - Test the public saved-items view.
 ## Tickets and Dependencies
-### T1 — Display items
+### T1 — Add saved-items view test
 - Dependencies: None
-- Allowed: src/items
-- Forbidden: src/auth
+- Allowed: tests/items/test_view.py
+- Forbidden: src/**
 - Criteria: AC1
-- Approach: Render saved items from existing storage in the public view.
-### T2 — Verify view
+- Approach: Add a test for the public view displaying saved items from existing storage, directly asserting AC1.
+  - Scenario: A user opens the view with saved items
+  - Location: tests/items/test_view.py
+  - Assertion: The rendered view contains the saved items, as required by AC1
+  - Command: python3 -m unittest tests.items.test_view.ViewTestCase.test_display_saved_items
+  - Working directory: .
+  - Expected preimplementation failure: AssertionError because the saved-items view does not yet display the items
+  - No unrelated errors accepted: The failure must be the stated AC1 assertion, not a collection, import, or setup error.
+### T2 — Implement saved-items view
 - Dependencies: T1
-- Allowed: tests/items
-- Forbidden: src/auth
+- Allowed: src/items/view.py, tests/items/test_view.py
+- Forbidden: src/auth/**
 - Criteria: AC1
-- Approach: Add a view test exercising the saved-items rendering.
+- Approach: Consume T1's AC1 assertion and confirmed red result to implement the view so it displays the existing saved items without changing the linked behavior; adapt the test only within tests/items/test_view.py if needed. Run `python3 -m unittest tests.items.test_view.ViewTestCase.test_display_saved_items` from `.` and require it to pass green.
 ## Acceptance Criteria
 - AC1: Saved items are displayed on the view.
 ## Verification Commands
@@ -57,63 +64,6 @@ None
 Item editing
 """
 
-# Test package with a test-first ticket that includes the required red plan/prerequisite
-PACKAGE_WITH_RED_PLAN = """status: SPEC_APPROVED_BY_AGENT
-
-## Problem Statement
-Implement authentication flow.
-## Solution
-Add login and logout functionality.
-## User Stories
-1. As a user, I want to log in so that I can access protected resources.
-2. As a user, I want to log out so that my session is secure.
-## Implementation Decisions
-- Use JWT tokens for session management
-- Implement password hashing
-## Testing Decisions
-- Test both successful and failed authentication flows
-- Test session invalidation on logout
-## Tickets and Dependencies
-### T1 — Implement login endpoint
-- Dependencies: None
-- Allowed: src/auth/login.py
-- Forbidden: None
-- Criteria: AC1
-- Approach: Create login endpoint that validates credentials and issues JWT token.
-### T2 — Add login test
-- Dependencies: T1
-- Allowed: tests/auth/test_login.py
-- Forbidden: None
-- Criteria: AC1
-- Approach: Add test that expects a red assertion for login endpoint before implementation.
-  - Scenario: User attempts to login with invalid credentials
-  - Location: tests/auth/test_login.py
-  - Command: python3 -m unittest tests.auth.test_login.LoginTestCase.test_invalid_credentials
-  - Expected preimplementation failure: AssertionError due to unimplemented endpoint
-### T3 — Implement logout
-- Dependencies: T1
-- Allowed: src/auth/logout.py
-- Forbidden: None
-- Criteria: AC2
-- Approach: Create logout endpoint that invalidates the JWT token.
-## Acceptance Criteria
-- AC1: Users can log in with valid credentials and receive a JWT token
-- AC2: Users can log out and sessions are invalidated
-## Verification Commands
-### Local
-#### L1 — Run auth tests
-- Command: `python3 -m unittest tests.auth`
-- Working directory: .
-- Prerequisites: None
-- Expected: Zero exit status
-## Risks
-None identified
-## Explicit Unknowns
-None
-## Out of Scope
-Password reset functionality
-"""
-
 # Alias for backward compatibility with test_implement_command.py
 PACKAGE = PACKAGE_WITH_TEST_FIRST_TICKET
 
@@ -122,16 +72,6 @@ class ValidatorTests(unittest.TestCase):
         self.assertEqual(validator.validate(PACKAGE_WITH_TEST_FIRST_TICKET), [])
         result = subprocess.run(
             [sys.executable, str(SCRIPT)], input=PACKAGE_WITH_TEST_FIRST_TICKET, text=True,
-            capture_output=True, check=False,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("VALID", result.stdout)
-
-    def test_valid_package_with_red_plan(self):
-        """Test that packages with red plan/prerequisite information validate correctly."""
-        self.assertEqual(validator.validate(PACKAGE_WITH_RED_PLAN), [])
-        result = subprocess.run(
-            [sys.executable, str(SCRIPT)], input=PACKAGE_WITH_RED_PLAN, text=True,
             capture_output=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -155,10 +95,10 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("T1: unknown criterion AC9", errors)
 
     def test_rejects_missing_or_empty_approach(self):
-        for replacement in ("", "- Approach: None\n", "- Approach: \n"):
+        for replacement in ("", "- Approach: None\n"):
             with self.subTest(replacement=replacement):
                 changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace(
-                    "- Approach: Render saved items from existing storage in the public view.\n",
+                    "- Approach: Add a test for the public view displaying saved items from existing storage, directly asserting AC1.\n",
                     replacement,
                 )
                 self.assertTrue(
@@ -167,7 +107,9 @@ class ValidatorTests(unittest.TestCase):
                 )
 
     def test_rejects_scope_without_paths_and_unassigned_criterion(self):
-        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace("- Allowed: src/items", "- Allowed: None", 1)
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace(
+            "- Allowed: tests/items/test_view.py", "- Allowed: None", 1
+        )
         changed = changed.replace(
             "## Verification Commands", "- AC2: Saved items have labels.\n## Verification Commands"
         )

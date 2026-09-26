@@ -47,5 +47,7 @@ Return:
 
 - Target file/location
 - Proposed concrete wording/action
+- Evidence
+- Expected benefit
 - Reason
 - Applicability (package/repository/cross-project candidate)
