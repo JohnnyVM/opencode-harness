@@ -80,6 +80,7 @@ Run the directory-based lifecycle tests with:
 python3 scripts/run_tests.py
 python3 scripts/run_tests.py lifecycle_smoke
 python3 scripts/run_tests.py basic_greeting
+python3 scripts/run_tests.py github_issue_greeting
 python3 scripts/run_tests.py fix_multiple_customers \
   --spec-model openai/gpt-6-sol \
   --implementation-model openai/gpt-6-luna \
@@ -99,6 +100,11 @@ Pass one or more test directory names to run only those tests.
 `basic_greeting` is the lowest-cost end-to-end scenario: it creates a local
 Python repository, asks for a specification package, invokes `/implement`, and
 runs the focused `unittest` that the implementation updates.
+`github_issue_greeting` fetches the approved package from
+`JohnnyVM/opencode-harness#38`, invokes `/implement` with that GitHub reference,
+and verifies the isolated implementation, handoff, branch guards, and focused
+test. It requires an authenticated `gh` CLI in addition to the normal lifecycle
+test prerequisites.
 The four optional model flags select the spec orchestrator, implementation
 orchestrator, light coder, and heavy coder independently. Omitted flags retain
 their agent defaults. Each model uses the `provider/model` format. The selected

@@ -77,6 +77,9 @@ During implementation:
 - For a confirmed behavior defect, add or update a regression test unless the
   orchestrator explicitly documents why one is infeasible.
 - Limit changes to the files or directories explicitly assigned by the orchestrator.
+- An explicitly assigned file path may be created when it does not exist and
+  the approved specification requires that file. Absence alone does not make
+  that exact path unverified; do not infer permission to create sibling files.
 - Validate that the assignment is complete and its allowed/forbidden scope is
   clear before editing; obey that scope. The assignment's admitted branch,
   immutable baseline, stable current expected `HEAD`, existing expected

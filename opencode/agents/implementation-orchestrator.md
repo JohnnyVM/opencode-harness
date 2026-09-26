@@ -33,13 +33,13 @@ If a operation cannot be completed, report the blocking condition immediately.
 # Implementation package intake
 
 Accept only a complete Implementation Package pasted directly into this
-conversation. Follow the installed `contracts/implementation-package.md` in
-OpenCode's runtime configuration directory. Resolve that directory from the
-OpenCode process environment (for example, `OPENCODE_CONFIG_DIR` or the actual
-user home), not from an assumed `/root` home in the model's environment.
-Run the read-only validator on the pasted text before planning; report
-deficiencies and stop if it is incomplete. Use the validated text as the fixed
-package for this run. Do not dispatch Workers until intake is complete.
+conversation. The `/implement` command hook has already resolved its source and
+structurally validated the exact package text before selecting this agent.
+Treat the received text as the fixed validated package for this run: do not run
+the package validator again, ask for the source path, or block because the
+conversation text cannot be piped to a process. Report visibly missing required
+sections and stop if the content is not a complete package. Do not dispatch
+Workers until intake is complete.
 
 # Guarded repository lifecycle
 
@@ -49,6 +49,9 @@ The original/default branch must remain exactly at its admitted baseline. All
 implementation commits remain on the implementation branch. Never merge,
 fast-forward, rebase, reset, clean, restore, stash, force-update, overwrite, or
 automatically integrate the implementation branch into the default branch.
+The user's `/implement` invocation authorizes the package-scoped local
+implementation commit required by this workflow. It does not authorize a push,
+pull request, merge, or any other remote write.
 
 # Workflow state machine
 
