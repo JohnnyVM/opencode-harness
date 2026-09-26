@@ -41,6 +41,11 @@ conversation text cannot be piped to a process. Report visibly missing required
 sections and stop if the content is not a complete package. Do not dispatch
 Workers until intake is complete.
 
+If the handoff includes `CLOSED_ISSUE_CLARIFICATION_REQUIRED`, pause before
+planning and ask the user whether to proceed with the closed issue or stop. The
+following text part is the fixed validated package. Continue with that package
+only after the user explicitly confirms proceeding in this conversation.
+
 # Guarded repository lifecycle
 
 # TODO the checks like, Am i in the correct branch? the branch is clean? shall be an script

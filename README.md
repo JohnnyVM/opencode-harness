@@ -69,8 +69,10 @@ To start implementation from an existing complete package, run either:
 The command reads the GitHub issue body with `gh` (or the local file), runs the
 Implementation Package validator on that text, and passes the complete text
 directly to `implementation-orchestrator`. Invalid or unreadable input stops the
-handoff. GitHub issue access requires an authenticated `gh` CLI. Install the
-command and its plugin with `python3 scripts/install.py`, then restart OpenCode.
+handoff. A missing or inaccessible issue returns `BLOCKED_SPEC`; a closed issue
+pauses before planning and asks the user whether to proceed or stop. GitHub
+issue access requires an authenticated `gh` CLI. Install the command and its
+plugin with `python3 scripts/install.py`, then restart OpenCode.
 
 ## Lifecycle Tests
 
