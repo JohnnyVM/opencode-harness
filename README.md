@@ -38,6 +38,32 @@ and skipped without modification. The installer resolves source paths
 independently of the current working directory (cwd-independent). After
 installation, restart OpenCode to load the new configuration.
 
+## Conditional agents
+
+Two read-only subagents `test-investigation` and `code-pattern` are conditional
+Spec-side advisers, not approval stages. They are not activated by default
+and are only used when explicitly requested by the spec orchestrator.
+
+## Specification handoff and TDD workflow
+
+The specification process follows a TDD-style handoff:
+
+1. Spec orchestrator prepares a complete implementation package
+2. The package is validated using `opencode/scripts/validate_implementation_package.py`
+3. The package is passed to the implementation orchestrator for implementation
+4. Implementation follows the test-first approach where each ticket begins with
+   an expected red assertion/evidence or prerequisite before moving to implementation
+5. Tests are added incrementally to verify behavior as implementation progresses
+
+## Documentation recommendations
+
+When documentation changes are needed, they should be scoped into a separate
+durable documentation ticket rather than being added silently to agent files.
+Agent-facing documentation recommendations from `code-pattern` have exact target,
+evidence, proposed wording/action, benefit and applicability; adopted immediate
+guidance is in package/coder packets, durable docs require explicit scoped ticket;
+no silent shared/global edits.
+
 ## Implementation Package handoff
 
 Create a complete package using

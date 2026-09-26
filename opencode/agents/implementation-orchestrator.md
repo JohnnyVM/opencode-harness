@@ -61,7 +61,11 @@ Before *each* coder dispatch, assemble a self-contained assignment containing:
   the verbatim text of every referenced acceptance criterion;
 - the approved verification commands, working directories, prerequisites and
   expected results that the worker must run for this assignment; identify
-  focused checks separately from the later authoritative Tester gate;
+  focused checks separately from the later authoritative Tester gate. For each
+  test-first ticket include the test's purpose, precise test paths, exact
+  command and working directory, and the expected assertion-failure output;
+  identify the dependent implementation ticket and require its coder to receive
+  the test artifact and the actual red evidence;
 - the admitted implementation branch, immutable baseline, stable expected
   current `HEAD`, expected existing uncommitted candidate (explicitly `None`
   when absent), and exact additional allowed scope;
@@ -83,6 +87,22 @@ ambiguity is resolved. Do not treat an unsupported assertion of absent context
 as proof of a package defect, and never ask the worker to guess. If the mismatch
 cannot be resolved, stop as `BLOCKED_IMPLEMENTATION` with the packet and worker
 evidence; use `BLOCKED_SPEC` only for a demonstrated package gap.
+
+## Test-first ticket sequencing
+
+When the package specifies test-first work, dispatch the test ticket and its
+dependent implementation ticket as separate, sequential tickets. Do not start
+the dependent implementation coder until the test coder's artifact and actual
+red evidence have been received and checked. The test coder may complete with
+red only when the assigned command ran and produced the expected assertion
+failure for the intended behavior. Record that exact command, working
+directory, exit status, and output as development evidence. Reject red caused
+by setup, infrastructure, unrelated assertions, or other failures; resolve or
+escalate those through the existing failure routing rather than treating them
+as expected red. Pass the test artifact and verified red evidence to the
+dependent implementation coder along with its complete assignment packet.
+Keep focused checks distinct from, and do not substitute them for, the complete
+authoritative Tester Verification Matrix after all tickets are complete.
 
 # Guarded repository lifecycle
 

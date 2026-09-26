@@ -118,6 +118,37 @@ class InstallerTests(unittest.TestCase):
         self.assertIn(cleaner, entries)
         self.assertEqual(entries[cleaner], Path("agents") / "cleaner.md")
 
+    def test_real_conditional_agents_are_discovered_and_linked(self):
+        """Test that the new conditional agents are discovered and linked by the installer."""
+        source = install.source_root() / "opencode"
+        test_investigation = source / "agents" / "test-investigation.md"
+        code_pattern = source / "agents" / "code-pattern.md"
+        
+        # Check that both conditional agents exist
+        self.assertTrue(test_investigation.exists(), "test-investigation.md should exist")
+        self.assertTrue(code_pattern.exists(), "code-pattern.md should exist")
+        
+        # Check that they are enumerated by the installer
+        entries = dict(install._entries(source))
+        self.assertIn(test_investigation, entries)
+        self.assertIn(code_pattern, entries)
+        self.assertEqual(entries[test_investigation], Path("agents") / "test-investigation.md")
+        self.assertEqual(entries[code_pattern], Path("agents") / "code-pattern.md")
+
+        # Test that they get linked correctly during installation
+        with tempfile.TemporaryDirectory() as home:
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(install.install(source, home), 0)
+            
+            # Check that both agents are linked
+            destination_test_investigation = Path(home) / ".config" / "opencode" / "agents" / "test-investigation.md"
+            destination_code_pattern = Path(home) / ".config" / "opencode" / "agents" / "code-pattern.md"
+            
+            self.assertTrue(destination_test_investigation.is_symlink())
+            self.assertTrue(destination_code_pattern.is_symlink())
+            self.assertEqual(os.readlink(destination_test_investigation), str(test_investigation.resolve()))
+            self.assertEqual(os.readlink(destination_code_pattern), str(code_pattern.resolve()))
+
     def test_real_contract_and_validator_are_discovered_and_linked(self):
         source = install.source_root() / "opencode"
         contract = source / "contracts" / "implementation-package.md"
