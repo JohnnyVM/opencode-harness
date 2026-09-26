@@ -51,8 +51,7 @@ The specification process follows a TDD-style handoff:
 1. Spec orchestrator prepares a complete implementation package
 2. The package is validated using `opencode/scripts/validate_implementation_package.py`
 3. The package is passed to the implementation orchestrator for implementation
-4. Implementation follows the test-first approach where each ticket begins with
-   an expected red assertion/evidence or prerequisite before moving to implementation
+4. Whether a test is needed is decided from existing coverage and behavior; if warranted, the package defines a test-first ticket and dependent implementation ticket with actual intended red evidence (or explicitly justified prerequisite/exception); otherwise package records reused coverage/justification; regardless, final Tester runs full Verification Matrix.
 5. Tests are added incrementally to verify behavior as implementation progresses
 
 ## Documentation recommendations
