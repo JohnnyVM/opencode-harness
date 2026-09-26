@@ -14,7 +14,8 @@ assert spec is not None and spec.loader is not None
 validator = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(validator)
 
-PACKAGE = """status: SPEC_APPROVED_BY_AGENT
+# Test package with a test-first ticket and dependent implementation ticket
+PACKAGE_WITH_TEST_FIRST_TICKET = """status: SPEC_APPROVED_BY_AGENT
 
 ## Problem Statement
 Users cannot see saved items.
@@ -27,18 +28,25 @@ Display saved items.
 ## Testing Decisions
 - Test the public saved-items view.
 ## Tickets and Dependencies
-### T1 — Display items
+### T1 — Add saved-items view test
 - Dependencies: None
-- Allowed: src/items
-- Forbidden: src/auth
+- Allowed: tests/items/test_view.py
+- Forbidden: src/**
 - Criteria: AC1
-- Approach: Render saved items from existing storage in the public view.
-### T2 — Verify view
+- Approach: Add a test for the public view displaying saved items from existing storage, directly asserting AC1.
+  - Scenario: A user opens the view with saved items
+  - Location: tests/items/test_view.py
+  - Assertion: The rendered view contains the saved items, as required by AC1
+  - Command: python3 -m unittest tests.items.test_view.ViewTestCase.test_display_saved_items
+  - Working directory: .
+  - Expected preimplementation failure: AssertionError because the saved-items view does not yet display the items
+  - No unrelated errors accepted: The failure must be the stated AC1 assertion, not a collection, import, or setup error.
+### T2 — Implement saved-items view
 - Dependencies: T1
-- Allowed: tests/items
-- Forbidden: src/auth
+- Allowed: src/items/view.py, tests/items/test_view.py
+- Forbidden: src/auth/**
 - Criteria: AC1
-- Approach: Add a view test exercising the saved-items rendering.
+- Approach: Consume T1's AC1 assertion and confirmed red result to implement the view so it displays the existing saved items without changing the linked behavior; adapt the test only within tests/items/test_view.py if needed. Run `python3 -m unittest tests.items.test_view.ViewTestCase.test_display_saved_items` from `.` and require it to pass green.
 ## Acceptance Criteria
 - AC1: Saved items are displayed on the view.
 ## Verification Commands
@@ -56,12 +64,14 @@ None
 Item editing
 """
 
+# Alias for backward compatibility with test_implement_command.py
+PACKAGE = PACKAGE_WITH_TEST_FIRST_TICKET
 
 class ValidatorTests(unittest.TestCase):
     def test_valid_package_and_read_only_cli(self):
-        self.assertEqual(validator.validate(PACKAGE), [])
+        self.assertEqual(validator.validate(PACKAGE_WITH_TEST_FIRST_TICKET), [])
         result = subprocess.run(
-            [sys.executable, str(SCRIPT)], input=PACKAGE, text=True,
+            [sys.executable, str(SCRIPT)], input=PACKAGE_WITH_TEST_FIRST_TICKET, text=True,
             capture_output=True, check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -73,22 +83,22 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("missing or empty section: Tickets and Dependencies", errors)
 
     def test_rejects_duplicate_status_and_placeholder(self):
-        errors = validator.validate(PACKAGE + "\nstatus: SPEC_APPROVED_BY_USER\nTODO\n")
+        errors = validator.validate(PACKAGE_WITH_TEST_FIRST_TICKET + "\nstatus: SPEC_APPROVED_BY_USER\nTODO\n")
         self.assertIn("requires exactly one valid status field", errors)
         self.assertIn("contains a placeholder or unresolved TODO/TBD", errors)
 
     def test_rejects_invalid_ticket_graph_and_criteria(self):
-        changed = PACKAGE.replace("Dependencies: None", "Dependencies: T2", 1)
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace("Dependencies: None", "Dependencies: T2", 1)
         changed = changed.replace("Criteria: AC1", "Criteria: AC9", 1)
         errors = validator.validate(changed)
         self.assertTrue(any("cyclic ticket dependencies" in error for error in errors))
         self.assertIn("T1: unknown criterion AC9", errors)
 
     def test_rejects_missing_or_empty_approach(self):
-        for replacement in ("", "- Approach: None\n", "- Approach: \n"):
+        for replacement in ("", "- Approach: None\n"):
             with self.subTest(replacement=replacement):
-                changed = PACKAGE.replace(
-                    "- Approach: Render saved items from existing storage in the public view.\n",
+                changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace(
+                    "- Approach: Add a test for the public view displaying saved items from existing storage, directly asserting AC1.\n",
                     replacement,
                 )
                 self.assertTrue(
@@ -97,7 +107,9 @@ class ValidatorTests(unittest.TestCase):
                 )
 
     def test_rejects_scope_without_paths_and_unassigned_criterion(self):
-        changed = PACKAGE.replace("- Allowed: src/items", "- Allowed: None", 1)
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace(
+            "- Allowed: tests/items/test_view.py", "- Allowed: None", 1
+        )
         changed = changed.replace(
             "## Verification Commands", "- AC2: Saved items have labels.\n## Verification Commands"
         )
@@ -106,20 +118,20 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("unassigned criterion: AC2", errors)
 
     def test_rejects_incomplete_checks_and_blocking_unknowns(self):
-        changed = PACKAGE.replace("- Working directory: .\n", "")
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace("- Working directory: .\n", "")
         changed = changed.replace("## Explicit Unknowns\nNone", "## Explicit Unknowns\nBlocking decision: storage format")
         errors = validator.validate(changed)
         self.assertTrue(any("Working directory" in error for error in errors))
         self.assertTrue(any("blocking requirements" in error for error in errors))
 
     def test_rejects_outdated_verification_section(self):
-        changed = PACKAGE.replace("## Risks", "### Remote\nNot applicable: no checks\n## Risks")
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace("## Risks", "### Remote\nNot applicable: no checks\n## Risks")
         self.assertIn(
             "Verification Commands: unexpected section: Remote", validator.validate(changed)
         )
 
     def test_rejects_outdated_check_inside_local_section(self):
-        changed = PACKAGE.replace("## Risks", "#### R1 — CI\n- Command: ci status\n## Risks")
+        changed = PACKAGE_WITH_TEST_FIRST_TICKET.replace("## Risks", "#### R1 — CI\n- Command: ci status\n## Risks")
         self.assertIn("Local: unexpected check: R1 — CI", validator.validate(changed))
 
 

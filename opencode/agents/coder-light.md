@@ -74,6 +74,17 @@ Before editing:
 During implementation:
 
 - use a red-green-refactor cycle for behavior changes
+- For test-first work, distinguish baseline checks from the expected red and
+  implementation green checks. A test-first ticket may finish red only when
+  its assigned command produces the expected assertion failure for the linked
+  behavior; report the exact command, working directory, exit status and
+  output. Setup, infrastructure, or unrelated failures are not expected red
+  and must be reported as blockers, not accepted as ticket completion.
+- For an implementation ticket depending on test-first work, use the supplied
+  test artifact and red evidence. You may adjust test mechanics only within the
+  explicit assigned scope and only while preserving the linked behavior and
+  assertion strength; report every such change. Escalate any proposed behavior
+  or scope change, or missing prerequisite, instead of making it.
 - reproduce and isolate defects before changing code
 - stay inside the assigned scope
 - preserve unrelated changes

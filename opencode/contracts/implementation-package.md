@@ -37,6 +37,16 @@ the author remains responsible for the adequacy and truth of the decisions.
 - Optional `target_repository` and `implementation_branch` fields may appear
   once each directly after `status`. When supplied, they constrain execution;
   the branch must differ from the repository's default branch.
+- Test-first tickets must include:
+  - Precise scope and dependency information
+  - Expected red assertion/evidence or prerequisite  
+  - Downstream implementation/test adaptation scope
+  - Final green checks
+  - Justification for reused tests or infeasible red exceptions
+- Agent-facing documentation recommendations from code-pattern have exact target,
+  evidence, proposed wording/action, benefit and applicability; adopted immediate
+  guidance is in package/coder packets, durable docs require explicit scoped ticket;
+  no silent shared/global edits.
 
 ## Copyable template
 

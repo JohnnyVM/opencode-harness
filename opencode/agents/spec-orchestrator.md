@@ -32,6 +32,8 @@ permission:
     "*": deny
     "explore": allow
     "researcher": allow
+    "test-investigation": allow
+    "code-pattern": allow
 
   bash:
     "*": deny
@@ -121,6 +123,21 @@ You decide which options matter for this project.
 The user decides product, business, and preference questions.
 
 You may recommend a path, but you must explain the trade-off.
+
+# Investigation integration
+
+When relevant, the Spec Orchestrator may call either investigation agent:
+- `test-investigation` to analyze test coverage, structure and behavior for test reuse, extension or addition
+- `code-pattern` to analyze code patterns and structures for structural guidance
+
+The Spec Orchestrator records why an investigation is skipped when not applicable, and owns adoption of investigation results into a self-contained package.
+
+Investigation results are synthesized into the implementation package with:
+- Conditional relevance: Only invoke when the decision depends on test structure or code patterns
+- Skip rationale: Document why an investigation is not needed (e.g., well-established patterns, clear requirements)
+- Bounded dispatch: Each investigation is scoped to specific aspects of the decision
+- Adoption: Evidence from investigations is incorporated into implementation decisions
+- Package synthesis: Investigation findings become part of the final implementation package
 
 # Specification boundary
 

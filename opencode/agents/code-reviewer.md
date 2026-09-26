@@ -54,6 +54,12 @@ Inspect:
 - unnecessary complexity
 - duplicated logic
 - missing tests
+- justification for each changed or added test, including how it covers the
+  approved behavior and relates to existing coverage; identify duplicate or
+  redundant coverage and whether any previous behavior is no longer retained
+- whether test adaptations stayed within approved scope, preserved the linked
+  behavior, and retained or strengthened the original assertions; flag weakened
+  assertions or unjustified test changes
 - suspicious changes outside the requested scope
 
 Do not modify files.
