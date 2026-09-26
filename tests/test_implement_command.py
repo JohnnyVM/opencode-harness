@@ -103,6 +103,16 @@ class ImplementCommandTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(json.loads(result.stdout), expected)
 
+    def test_github_issue_url_replaces_prompt_exactly(self):
+        for source in (
+            "https://github.com/acme/widget/issues/42",
+            "https://github.com/acme/widget/issues/42/",
+        ):
+            with self.subTest(source=source), tempfile.TemporaryDirectory() as temp:
+                result = run_hook(source, Path(temp), issue={"body": fixture.PACKAGE})
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout), [{"type": "text", "text": fixture.PACKAGE}])
+
     def test_invalid_issue_body_stops_handoff(self):
         for issue, expected in (
             ({"body": "Implement feature"}, "INVALID: requires exactly one valid status field"),

@@ -5,6 +5,7 @@ import { resolve as resolvePath } from "node:path"
 
 const validator = fileURLToPath(new URL("../scripts/validate_implementation_package.py", import.meta.url))
 const issueReference = /^([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#([1-9]\d*)$/
+const issueURL = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/issues\/([1-9]\d*)\/?$/
 
 function loadIssue(reference, issue, directory) {
   let response
@@ -40,9 +41,9 @@ function loadIssue(reference, issue, directory) {
 
 function loadPackage(source, directory) {
   const reference = source.trim()
-  if (!reference) throw new Error("Usage: /implement owner/repo#number or /implement path/to/package.md")
+  if (!reference) throw new Error("Usage: /implement owner/repo#number, /implement https://github.com/owner/repo/issues/number, or /implement path/to/package.md")
 
-  const issue = issueReference.exec(reference)
+  const issue = issueReference.exec(reference) ?? issueURL.exec(reference)
   let text
   let clarification
   if (issue) {

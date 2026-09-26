@@ -65,6 +65,7 @@ To start implementation from an existing complete package, run either:
 
 ```text
 /implement owner/repo#42
+/implement https://github.com/owner/repo/issues/42
 /implement path/to/package.md
 ```
 
