@@ -111,6 +111,7 @@ python3 scripts/run_tests.py
 python3 scripts/run_tests.py lifecycle_smoke
 python3 scripts/run_tests.py basic_greeting
 python3 scripts/run_tests.py github_issue_greeting
+python3 scripts/run_tests.py prepare_miravia_issue
 python3 scripts/run_tests.py fix_multiple_customers \
   --spec-model openai/gpt-6-sol \
   --implementation-model openai/gpt-6-luna \
@@ -135,6 +136,13 @@ runs the focused `unittest` that the implementation updates.
 and verifies the isolated implementation, handoff, branch guards, and focused
 test. It requires an authenticated `gh` CLI in addition to the normal lifecycle
 test prerequisites.
+`prepare_miravia_issue` clones `Guadalsistema/connector-proyect` at
+`0130a245d35846014372db652acf9d809ac81d0d`, invokes
+`/implement Guadalsistema/connector-proyect#10`, and requires all nine tickets, a passing
+Tester gate, Reviewer approval, Cleaner pass, a committed clean branch, and
+fresh real-Odoo smoke and full runner results. It requires authenticated `gh`,
+Go 1.25.5, protoc 31.1, clang-format 18, pinned Go protobuf generators,
+rootless Podman, and locally available PostgreSQL 17 and Odoo 17 images.
 The four optional model flags select the spec orchestrator, implementation
 orchestrator, light coder, and heavy coder independently. Omitted flags retain
 their agent defaults. Each model uses the `provider/model` format. The selected
