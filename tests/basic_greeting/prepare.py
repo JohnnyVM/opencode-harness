@@ -27,4 +27,6 @@ subprocess.run(["git", "config", "user.email", "lifecycle@example.test"], cwd=re
 subprocess.run(["git", "add", "greeting.py", "test_greeting.py"], cwd=repository, check=True)
 subprocess.run(["git", "commit", "-m", "Add greeting baseline"], cwd=repository, check=True)
 subprocess.run(["git", "switch", "--create", "e2e/basic-greeting"], cwd=repository, check=True)
-(repository / ".git" / "info" / "exclude").write_text(".scratch/\n.agent-trace/\n")
+(repository / ".git" / "info" / "exclude").write_text(
+    ".scratch/\n.agent-trace/\n__pycache__/\n"
+)

@@ -1,13 +1,10 @@
-"""Create an isolated repository matching the GitHub issue package."""
+"""Create an isolated repository for the local greeting specification."""
 
-import json
 import os
 from pathlib import Path
 import subprocess
 
 
-ISSUE_REPOSITORY = "JohnnyVM/opencode-harness"
-ISSUE_NUMBER = "38"
 IMPLEMENTATION_BRANCH = "repro/issue-backed-basic-greeting"
 
 workspace = Path(os.environ["TEST_WORKSPACE"])
@@ -18,7 +15,7 @@ subprocess.run(["git", "config", "user.name", "Lifecycle Test"], cwd=repository,
 subprocess.run(
     ["git", "config", "user.email", "lifecycle@example.test"], cwd=repository, check=True
 )
-(repository / "README.md").write_text("# GitHub issue implementation fixture\n")
+(repository / "README.md").write_text("# Local architecture implementation fixture\n")
 subprocess.run(["git", "add", "README.md"], cwd=repository, check=True)
 subprocess.run(["git", "commit", "-m", "Add issue implementation baseline"], cwd=repository, check=True)
 baseline = subprocess.run(
@@ -30,31 +27,12 @@ baseline = subprocess.run(
 ).stdout.strip()
 (workspace / "baseline.txt").write_text(baseline)
 subprocess.run(
-    ["git", "remote", "add", "origin", f"https://github.com/{ISSUE_REPOSITORY}.git"],
-    cwd=repository,
-    check=True,
-)
-subprocess.run(
     ["git", "switch", "--create", IMPLEMENTATION_BRANCH], cwd=repository, check=True
 )
 (repository / ".git" / "info" / "exclude").write_text(
     ".scratch/\n.agent-trace/\n__pycache__/\n"
 )
-
-response = subprocess.run(
-    [
-        "gh",
-        "issue",
-        "view",
-        ISSUE_NUMBER,
-        "--repo",
-        ISSUE_REPOSITORY,
-        "--json",
-        "body",
-    ],
-    text=True,
-    stdout=subprocess.PIPE,
-    check=True,
+(repository / ".scratch").mkdir()
+(repository / ".scratch" / "greeting-specification.md").write_text(
+    Path(__file__).with_name("specification.md").read_text()
 )
-(workspace / "issue-package.md").write_text(json.loads(response.stdout)["body"])
-(workspace / "issue-reference.txt").write_text(f"{ISSUE_REPOSITORY}#{ISSUE_NUMBER}")

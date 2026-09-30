@@ -149,37 +149,56 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(os.readlink(destination_test_investigation), str(test_investigation.resolve()))
             self.assertEqual(os.readlink(destination_code_pattern), str(code_pattern.resolve()))
 
-    def test_real_contract_and_validator_are_discovered_and_linked(self):
+    def test_real_contracts_and_validators_are_discovered_and_linked(self):
         source = install.source_root() / "opencode"
-        contract = source / "contracts" / "implementation-package.md"
-        validator = source / "scripts" / "validate_implementation_package.py"
         entries = dict(install._entries(source))
-        self.assertEqual(entries[contract], Path("contracts") / contract.name)
-        self.assertEqual(entries[validator], Path("scripts") / validator.name)
+        items = [
+            source / "contracts" / f"{name}.md"
+            for name in ("specification-package", "architecture-package", "coder-assignment")
+        ] + [
+            source / "scripts" / f"validate_{name.replace('-', '_')}.py"
+            for name in ("specification-package", "architecture-package", "coder-assignment")
+        ]
+        for item in items:
+            folder = item.parent.name
+            self.assertEqual(entries[item], Path(folder) / item.name)
 
         with tempfile.TemporaryDirectory() as home:
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(install.install(source, home), 0)
-            for item, folder in ((contract, "contracts"), (validator, "scripts")):
+            for item in items:
+                folder = item.parent.name
                 destination = Path(home) / ".config" / "opencode" / folder / item.name
                 self.assertTrue(destination.is_symlink())
                 self.assertEqual(os.readlink(destination), str(item.resolve()))
 
-    def test_implement_command_and_plugin_are_installed(self):
+    def test_architect_and_implement_assets_are_installed(self):
         source = install.source_root() / "opencode"
-        command = source / "commands" / "implement.md"
-        plugin = source / "plugins" / "implement.js"
+        items = [
+            source / "agents" / "architect.md",
+            source / "commands" / "architect.md",
+            source / "commands" / "implement.md",
+            source / "plugins" / "implement.js",
+        ]
         entries = dict(install._entries(source))
-        self.assertEqual(entries[command], Path("commands") / command.name)
-        self.assertEqual(entries[plugin], Path("plugins") / plugin.name)
+        for item in items:
+            self.assertEqual(entries[item], Path(item.parent.name) / item.name)
+        for name in ("architect", "how", "arena", "why", "interrogate"):
+            skill = source / "skills" / name
+            self.assertEqual(entries[skill], Path("skills") / name)
 
         with tempfile.TemporaryDirectory() as home:
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(install.install(source, home), 0)
-            for item, folder in ((command, "commands"), (plugin, "plugins")):
+            for item in items:
+                folder = item.parent.name
                 destination = Path(home) / ".config" / "opencode" / folder / item.name
                 self.assertTrue(destination.is_symlink())
                 self.assertEqual(os.readlink(destination), str(item.resolve()))
+            for name in ("architect", "how", "arena", "why", "interrogate"):
+                destination = Path(home) / ".config" / "opencode" / "skills" / name
+                self.assertTrue(destination.is_symlink())
+                self.assertEqual(os.readlink(destination), str((source / "skills" / name).resolve()))
 
 
 if __name__ == "__main__":

@@ -21,9 +21,11 @@ This repository uses a single-context domain documentation layout. See `docs/dom
 
 ## Implementation handoff
 
-Use `opencode/contracts/implementation-package.md` to create a complete
-package. Paste its text directly into the Implementation Orchestrator. Commands
-may prepare package text from other sources before selecting that agent.
+Use `opencode/contracts/specification-package.md` for the Spec-to-Architect
+handoff, `opencode/contracts/architecture-package.md` for Architect-to-
+Implementation Orchestrator, and `opencode/contracts/coder-assignment.md` for
+per-ticket coder dispatch. `/architect` and `/implement` validate command
+sources before selecting their primary agents.
 
 The `/setup-matt-pocock-skills` command is available for explicit user setup of
 repository conventions. It is triggered by the user directly, not automatically

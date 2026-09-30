@@ -44,15 +44,19 @@ Two read-only subagents `test-investigation` and `code-pattern` are conditional
 Spec-side advisers, not approval stages. They are not activated by default
 and are only used when explicitly requested by the spec orchestrator.
 
-## Specification handoff and TDD workflow
+## Three-stage handoff and TDD workflow
 
-The specification process follows a TDD-style handoff:
+The delivery process uses three validated contracts:
 
-1. Spec orchestrator prepares a complete implementation package
-2. The package is validated using `opencode/scripts/validate_implementation_package.py`
-3. The package is passed to the implementation orchestrator for implementation
-4. Whether a test is needed is decided from existing coverage and behavior; if warranted, the package defines a test-first ticket and dependent implementation ticket with actual intended red evidence (or explicitly justified prerequisite/exception); otherwise package records reused coverage/justification; regardless, final Tester runs full Verification Matrix.
-5. Tests are added incrementally to verify behavior as implementation progresses
+1. Spec Orchestrator prepares and validates a Specification Package.
+2. `/architect` passes it to the model-neutral Architect, which freezes the
+   specification and adds architecture, tickets, and verification in an
+   Architecture Package.
+3. `/implement` passes that package to Implementation Orchestrator.
+4. Implementation Orchestrator creates one validated Coder Assignment per
+   ticket before dispatch.
+5. Tests are added incrementally; the final Tester runs the complete
+   Verification Matrix.
 
 ## Documentation recommendations
 
@@ -63,30 +67,40 @@ evidence, proposed wording/action, benefit and applicability; adopted immediate
 guidance is in package/coder packets, durable docs require explicit scoped ticket;
 no silent shared/global edits.
 
-## Implementation Package handoff
+## Package handoffs
 
-Create a complete package using
-[`opencode/contracts/implementation-package.md`](opencode/contracts/implementation-package.md).
-The user can fill in the template directly, or `spec-orchestrator` can prepare
-it. Version 2 requires an `Approach` for every ticket; existing packages must
-add this field before `/implement` can accept them. Validate the finished text
-before handoff:
+Spec Orchestrator uses
+[`opencode/contracts/specification-package.md`](opencode/contracts/specification-package.md).
+Validate the finished text before architecture:
 
 ```bash
-python3 opencode/scripts/validate_implementation_package.py < package.md
+python3 opencode/scripts/validate_specification_package.py < specification.md
 ```
 
-Select `implementation-orchestrator` and paste the **complete package text**
-into its conversation. The agent does not accept paths, issue references, or
-raw requests. Commands may prepare package text from another source before
-selecting that agent. A structural validator does not replace review of the
-requirements. Package readiness does not authorize external writes.
+Run Architect with a local file or GitHub issue and an explicit local output:
+
+```text
+/architect path/to/specification.md --output .scratch/architecture.md
+/architect owner/repo#42 --output .scratch/architecture.md
+/architect https://github.com/owner/repo/issues/42 --output .scratch/architecture.md
+```
+
+Architect uses
+[`opencode/contracts/architecture-package.md`](opencode/contracts/architecture-package.md),
+preserves the complete specification verbatim, and validates its output. It is
+model-neutral: its agent configuration does not pin a provider or model.
+
+Implementation Orchestrator creates per-ticket packets using
+[`opencode/contracts/coder-assignment.md`](opencode/contracts/coder-assignment.md).
+The plugin validates the actual prompt before a coder task can start. Structural
+validation does not replace semantic review, and readiness never authorizes
+external writes.
 
 Rerun the installer to link the contract and validator, then restart OpenCode.
 
 ### `/implement`
 
-To start implementation from an existing complete package, run either:
+To start implementation from an Architecture Package, run either:
 
 ```text
 /implement owner/repo#42
@@ -95,9 +109,10 @@ To start implementation from an existing complete package, run either:
 ```
 
 The command reads the GitHub issue body with `gh` (or the local file), runs the
-Implementation Package validator on that text, and passes the complete text
+Architecture Package validator on that text, and passes the complete text
 directly to `implementation-orchestrator`. Invalid or unreadable input stops the
-handoff. A missing or inaccessible issue returns `BLOCKED_SPEC`; a closed issue
+handoff. Legacy Implementation Package v2 input is rejected. A missing or
+inaccessible issue returns `BLOCKED_SPEC`; a closed issue
 pauses before planning and asks the user whether to proceed or stop. GitHub
 issue access requires an authenticated `gh` CLI. Install the command and its
 plugin with `python3 scripts/install.py`, then restart OpenCode.
@@ -111,9 +126,9 @@ python3 scripts/run_tests.py
 python3 scripts/run_tests.py lifecycle_smoke
 python3 scripts/run_tests.py basic_greeting
 python3 scripts/run_tests.py github_issue_greeting
-python3 scripts/run_tests.py prepare_miravia_issue
 python3 scripts/run_tests.py fix_multiple_customers \
   --spec-model openai/gpt-6-sol \
+  --architect-model openai/gpt-6-sol \
   --implementation-model openai/gpt-6-luna \
   --coder-light-model ovhcloud/qwen3-coder-30b-a3b-instruct \
   --coder-heavy-model openai/gpt-6-luna
@@ -129,23 +144,16 @@ directory in the `TEST_WORKSPACE` environment variable and a persistent,
 git-ignored output directory in `TEST_ARTIFACTS`.
 Pass one or more test directory names to run only those tests.
 `basic_greeting` is the lowest-cost end-to-end scenario: it creates a local
-Python repository, asks for a specification package, invokes `/implement`, and
-runs the focused `unittest` that the implementation updates.
-`github_issue_greeting` fetches the approved package from
-`JohnnyVM/opencode-harness#38`, invokes `/implement` with that GitHub reference,
-and verifies the isolated implementation, handoff, branch guards, and focused
-test. It requires an authenticated `gh` CLI in addition to the normal lifecycle
-test prerequisites.
-`prepare_miravia_issue` clones `Guadalsistema/connector-proyect` at
-`0130a245d35846014372db652acf9d809ac81d0d`, invokes
-`/implement Guadalsistema/connector-proyect#10`, and requires all nine tickets, a passing
-Tester gate, Reviewer approval, Cleaner pass, a committed clean branch, and
-fresh real-Odoo smoke and full runner results. It requires authenticated `gh`,
-Go 1.25.5, protoc 31.1, clang-format 18, pinned Go protobuf generators,
-rootless Podman, and locally available PostgreSQL 17 and Odoo 17 images.
-The four optional model flags select the spec orchestrator, implementation
-orchestrator, light coder, and heavy coder independently. Omitted flags retain
-their agent defaults. Each model uses the `provider/model` format. The selected
+Python repository, runs Specification, Architecture, and Implementation stages,
+and verifies both exact handoffs, the guarded branch, and focused `unittest`.
+GitHub issue URL and shorthand loading are covered by command integration tests
+using local fixtures rather than mutable external issue bodies.
+The five optional model flags select the Spec Orchestrator, model-neutral
+Architect runtime, Implementation Orchestrator, light coder, and heavy coder
+independently. In lifecycle tests only, an omitted Architect model inherits the
+selected Spec model; the production Architect agent remains unpinned. Other
+omitted flags retain their agent defaults. Each model uses the `provider/model`
+format. The selected
 models are passed to all phases and checked against captured sessions when
 those agents run. Repeat the command with different flags to compare runs;
 metrics for each run remain in its own timestamped artifact directory.

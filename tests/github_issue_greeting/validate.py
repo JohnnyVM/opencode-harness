@@ -1,4 +1,4 @@
-"""Verify the GitHub issue handoff and its isolated implementation."""
+"""Verify the local architecture handoff and isolated implementation."""
 
 import os
 from pathlib import Path
@@ -7,6 +7,8 @@ import unittest
 
 from scripts.lifecycle_opencode import (
     expected_primary_models,
+    validate_architect_handoff,
+    validate_coder_assignments,
     validate_implementation_handoff,
     validate_implementation_report,
     validate_observability,
@@ -21,11 +23,15 @@ repository = workspace / "tmp"
 
 validate_observability(
     artifacts,
-    expected_stages=("implementation",),
+    expected_stages=("architecture", "implementation"),
     expected_models=(expected_primary_models()[1],),
 )
-validate_implementation_handoff(artifacts, workspace / "issue-package.md")
-validate_implementation_report(artifacts, workspace / "issue-package.md")
+specification = repository / ".scratch" / "greeting-specification.md"
+architecture = repository / ".scratch" / "greeting-architecture.md"
+validate_architect_handoff(artifacts, specification, architecture)
+validate_implementation_handoff(artifacts, architecture)
+validate_coder_assignments(artifacts)
+validate_implementation_report(artifacts, architecture)
 
 branch = subprocess.run(
     ["git", "branch", "--show-current"],

@@ -6,7 +6,7 @@ from pathlib import Path
 from scripts.lifecycle_opencode import capture_agents
 
 
-PROMPT = """Work autonomously and generate an implementation package for this feature.
+PROMPT = """Work autonomously and generate a Specification Package for this feature.
 Do not ask questions: use your recommended defaults for non-product ambiguities,
 record them as assumptions, and write no file except the requested package.
 
@@ -18,8 +18,8 @@ spaces must be quoted, for example "name surname".
 example:
 @buy "azeta s.l" FC045 9999999999
 
-Generate the complete agent-approved spec file at
-.scratch/modify-buy-sale-command.md
+Generate the complete agent-approved specification at
+.scratch/modify-buy-sale-command-specification.md.
 """
 
 workspace = Path(os.environ["TEST_WORKSPACE"])
@@ -28,12 +28,18 @@ capture_agents(
     artifacts=Path(os.environ["TEST_ARTIFACTS"]),
     harness=Path(__file__).resolve().parents[2],
     invocations=[
-        {"stage": "spec-orchestrator", "agent": "spec-orchestrator", "prompt": PROMPT},
+        {"stage": "specification", "agent": "spec-orchestrator", "prompt": PROMPT},
+        {
+            "stage": "architecture",
+            "agent": "architect",
+            "command": "architect",
+            "prompt": ".scratch/modify-buy-sale-command-specification.md --output .scratch/modify-buy-sale-command-architecture.md",
+        },
         {
             "stage": "implementation",
-            "agent": "spec-orchestrator",
+            "agent": "implementation-orchestrator",
             "command": "implement",
-            "prompt": ".scratch/modify-buy-sale-command.md",
+            "prompt": ".scratch/modify-buy-sale-command-architecture.md",
         },
     ],
 )

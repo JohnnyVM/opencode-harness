@@ -1,9 +1,12 @@
 import { execFileSync, spawnSync } from "node:child_process"
+import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { resolve as resolvePath } from "node:path"
 
-const validator = fileURLToPath(new URL("../scripts/validate_implementation_package.py", import.meta.url))
+const implementationValidator = fileURLToPath(new URL("../scripts/validate_architecture_package.py", import.meta.url))
+const specificationValidator = fileURLToPath(new URL("../scripts/validate_specification_package.py", import.meta.url))
+const assignmentValidator = fileURLToPath(new URL("../scripts/validate_coder_assignment.py", import.meta.url))
 const issueReference = /^([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)#([1-9]\d*)$/
 const issueURL = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/issues\/([1-9]\d*)\/?$/
 
@@ -39,9 +42,9 @@ function loadIssue(reference, issue, directory) {
   }
 }
 
-function loadPackage(source, directory) {
+function loadSource(source, directory, validator, label) {
   const reference = source.trim()
-  if (!reference) throw new Error("Usage: /implement owner/repo#number, /implement https://github.com/owner/repo/issues/number, or /implement path/to/package.md")
+  if (!reference) throw new Error("Usage: source must be owner/repo#number, a GitHub issue URL, or a local file path")
 
   const issue = issueReference.exec(reference) ?? issueURL.exec(reference)
   let text
@@ -61,21 +64,64 @@ function loadPackage(source, directory) {
   const result = spawnSync("python3", [validator], { input: text, encoding: "utf8" })
   if (result.error) throw new Error(`Cannot run package validator: ${result.error.message}`, { cause: result.error })
   if (result.status !== 0) {
-    throw new Error(`Invalid Implementation Package in ${reference}:\n${result.stderr.trim() || `validator exited ${result.status}`}`)
+    throw new Error(`Invalid ${label} in ${reference}:\n${result.stderr.trim() || `validator exited ${result.status}`}`)
   }
   return { text, clarification }
 }
 
+function commandArguments(value) {
+  const argumentsText = value.trim()
+  const quote = argumentsText[0]
+  if ((quote === '"' || quote === "'") && argumentsText.at(-1) === quote) {
+    return argumentsText.slice(1, -1)
+  }
+  return argumentsText
+}
+
 export default async ({ directory }) => ({
   "command.execute.before": async (input, output) => {
-    if (input.command !== "implement") return
-    const packageInput = loadPackage(input.arguments, directory)
-    const parts = packageInput.clarification
-      ? [
-          { type: "text", text: packageInput.clarification },
-          { type: "text", text: packageInput.text },
-        ]
-      : [{ type: "text", text: packageInput.text }]
-    output.parts.splice(0, output.parts.length, ...parts)
+    if (input.command === "architect") {
+      const argumentsText = commandArguments(input.arguments)
+      const marker = " --output "
+      const index = argumentsText.indexOf(marker)
+      if (index < 0 || argumentsText.indexOf(marker, index + marker.length) >= 0) {
+        throw new Error("Usage: /architect <source> --output <local-path>")
+      }
+      const source = argumentsText.slice(0, index)
+      const destination = argumentsText.slice(index + marker.length).trim()
+      if (!destination) throw new Error("Usage: /architect <source> --output <local-path>")
+      const packageInput = loadSource(source, directory, specificationValidator, "Specification Package")
+      const normalized = resolvePath(directory, destination)
+      const specificationBytes = Buffer.byteLength(packageInput.text, "utf8")
+      const specificationHash = createHash("sha256").update(packageInput.text, "utf8").digest("hex")
+      output.parts.splice(0, output.parts.length,
+        { type: "text", text: `Create an Architecture Package and write it to this output path: ${normalized}\n` +
+          `Use these source frozen-specification integrity values exactly:\n` +
+          `specification-bytes: ${specificationBytes}\n` +
+          `specification-sha256: ${specificationHash}` },
+        { type: "text", text: packageInput.text },
+        ...(packageInput.clarification ? [{ type: "text", text: packageInput.clarification }] : []),
+      )
+      return
+    }
+    if (input.command === "implement") {
+      const packageInput = loadSource(commandArguments(input.arguments), directory, implementationValidator, "Architecture Package")
+      const parts = packageInput.clarification
+        ? [
+            { type: "text", text: packageInput.clarification },
+            { type: "text", text: packageInput.text },
+          ]
+        : [{ type: "text", text: packageInput.text }]
+      output.parts.splice(0, output.parts.length, ...parts)
+    }
+  },
+  "tool.execute.before": async (input, output) => {
+    if (input.tool !== "task") return
+    if (!["coder-light", "coder-heavy"].includes(output.args?.subagent_type)) return
+    const result = spawnSync("python3", [assignmentValidator], { input: output.args.prompt, encoding: "utf8" })
+    if (result.error) throw new Error(`Cannot run coder assignment validator: ${result.error.message}`, { cause: result.error })
+    if (result.status !== 0) {
+      throw new Error(`Invalid coder assignment; refusing task dispatch:\n${result.stderr.trim() || `validator exited ${result.status}`}`)
+    }
   },
 })

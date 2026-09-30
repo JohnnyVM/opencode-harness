@@ -7,18 +7,21 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import time
 
 
 PLUGIN = "opencode-trace@0.3.1"
 MODEL_ENV = {
     "spec-orchestrator": "TEST_SPEC_MODEL",
+    "architect": "TEST_ARCHITECT_MODEL",
     "implementation-orchestrator": "TEST_IMPLEMENTATION_MODEL",
     "coder-light": "TEST_CODER_LIGHT_MODEL",
     "coder-heavy": "TEST_CODER_HEAVY_MODEL",
 }
 DEFAULT_MODELS = {
     "spec-orchestrator": "openai/gpt-6-sol",
+    "architect": "openai/gpt-6-sol",
     "implementation-orchestrator": "openai/gpt-6-luna",
     "coder-light": "ovhcloud/qwen3-coder-30b-a3b-instruct",
     "coder-heavy": "openai/gpt-6-luna",
@@ -37,7 +40,7 @@ def expected_primary_models():
     models = selected_models()
     return tuple(
         models.get(agent, DEFAULT_MODELS[agent])
-        for agent in ("spec-orchestrator", "implementation-orchestrator")
+        for agent in ("spec-orchestrator", "architect", "implementation-orchestrator")
     )
 
 
@@ -94,6 +97,16 @@ def capture_agents(repository, artifacts, harness, invocations):
     opencode = _require_executable("opencode")
     environment = os.environ.copy()
     agent_config: dict[str, dict] = {
+        "architect": {
+            "permission": {
+                "external_directory": {
+                    str(harness): "allow",
+                    str(harness / "**"): "allow",
+                    str(repository.parent): "allow",
+                    str(repository.parent / "**"): "allow",
+                },
+            },
+        },
         "implementation-orchestrator": {
             "permission": {
                 "external_directory": {
@@ -105,6 +118,14 @@ def capture_agents(repository, artifacts, harness, invocations):
     }
     for agent, model in selected_models().items():
         agent_config.setdefault(agent, {})["model"] = model
+    agent_config.setdefault("architect", {})["model"] = agent_config.get(
+        "architect", {}
+    ).get(
+        "model",
+        agent_config.get("spec-orchestrator", {}).get(
+            "model", DEFAULT_MODELS["spec-orchestrator"]
+        ),
+    )
     environment.update(
         {
             "OPENCODE_CONFIG": str(harness / "opencode" / "opencode.jsonc"),
@@ -322,11 +343,12 @@ def validate_observability(artifacts, expected_stages, expected_models):
     models = {session["model"] for session in sessions}
     if not set(expected_models).issubset(models):
         raise AssertionError(f"missing expected models: {sorted(set(expected_models) - models)}")
-    for stage, expected in zip(metrics["stages"], expected_models):
-        stage_models = {session["model"] for session in stage["sessions"]}
-        if expected not in stage_models:
-            raise AssertionError(f"{stage['stage']} is missing expected model: {expected}")
     configured_models = selected_models()
+    for agent in ("spec-orchestrator", "architect", "implementation-orchestrator"):
+        actual = {session["model"] for session in sessions if session["agent"] == agent}
+        expected = configured_models.get(agent, DEFAULT_MODELS[agent])
+        if actual and actual != {expected}:
+            raise AssertionError(f"{agent} used {sorted(actual)}, expected {expected}")
     for agent in ("coder-light", "coder-heavy"):
         expected = configured_models.get(agent, DEFAULT_MODELS[agent])
         actual = {session["model"] for session in sessions if session["agent"] == agent}
@@ -402,28 +424,74 @@ def validate_observability(artifacts, expected_stages, expected_models):
     print(f"Raw artifacts: {artifacts}")
 
 
-def validate_implementation_handoff(artifacts, package):
-    """Confirm /implement delivered the exact spec to the intended primary agent."""
-    expected = package.read_text()
-    sessions = artifacts / "implementation" / "sessions"
+def validate_architect_handoff(artifacts, specification, architecture):
+    """Confirm /architect received and preserved the exact specification text."""
+    _validate_handoff(artifacts, "architecture", specification, "architect", "/architect")
+    validator = Path(__file__).resolve().parents[1] / "opencode/scripts/validate_architecture_package.py"
+    result = subprocess.run(
+        [sys.executable, str(validator), "--specification", str(specification)],
+        input=architecture.read_text(), text=True, capture_output=True, check=False,
+    )
+    if result.returncode:
+        raise AssertionError(f"Architect did not preserve the frozen specification:\n{result.stderr}")
+
+
+def _validate_handoff(artifacts, stage, document, agent, command):
+    expected = document.read_text()
+    sessions = artifacts / stage / "sessions"
     for path in sessions.glob("*.json"):
         payload = json.loads(path.read_text())
         for message in payload.get("messages", []):
             if message.get("info", {}).get("role") != "user":
                 continue
-            if message["info"].get("agent") != "implementation-orchestrator":
+            if message["info"].get("agent") != agent:
                 continue
             if any(part.get("type") == "text" and part.get("text") == expected
                    for part in message.get("parts", [])):
                 return
-    raise AssertionError("/implement did not deliver the full package to implementation-orchestrator")
+    raise AssertionError(f"{command} did not deliver the full document to {agent}")
 
 
-def validate_implementation_report(artifacts, package):
+def validate_implementation_handoff(artifacts, architecture):
+    """Confirm /implement delivered the exact architecture text."""
+    _validate_handoff(artifacts, "implementation", architecture,
+                      "implementation-orchestrator", "/implement")
+
+
+def validate_coder_assignments(artifacts):
+    """Validate every exported coder prompt and require at least one dispatch."""
+    validator = Path(__file__).resolve().parents[1] / "opencode/scripts/validate_coder_assignment.py"
+    assignments = []
+    for path in (artifacts / "implementation" / "sessions").glob("*.json"):
+        payload = json.loads(path.read_text())
+        for message in payload.get("messages", []):
+            info = message.get("info", {})
+            if info.get("role") != "user" or info.get("agent") not in {"coder-light", "coder-heavy"}:
+                continue
+            assignments.extend(
+                part.get("text", "")
+                for part in message.get("parts", [])
+                if part.get("type") == "text" and part.get("text", "").startswith("status: ASSIGNMENT_READY")
+            )
+    if not assignments:
+        raise AssertionError("implementation exported no Coder Assignments")
+    for assignment in assignments:
+        result = subprocess.run(
+            [sys.executable, str(validator)],
+            input=assignment,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if result.returncode:
+            raise AssertionError(f"exported invalid Coder Assignment:\n{result.stderr}")
+
+
+def validate_implementation_report(artifacts, package, expected_status=None):
     """Confirm the primary agent's final report accounts for every package ticket."""
     tickets = re.findall(r"^### (T\d+)\s+[—-]", package.read_text(), re.MULTILINE)
     if not tickets:
-        raise AssertionError("implementation package has no tickets")
+        raise AssertionError("architecture package has no tickets")
     sessions = artifacts / "implementation" / "sessions"
     for path in sessions.glob("*.json"):
         payload = json.loads(path.read_text())
@@ -450,5 +518,35 @@ def validate_implementation_report(artifacts, package):
                              ledger, re.MULTILINE)
         if sorted(ticket for ticket, _ in entries) != sorted(tickets):
             raise AssertionError(f"ticket ledger {entries} does not match {tickets}")
+        if expected_status == "DONE":
+            _validate_done_report(report, entries)
         return
     raise AssertionError("implementation-orchestrator primary session not found")
+
+
+def _validate_done_report(report, entries):
+    sections = {
+        heading: report.split(f"## {heading}", 1)[1].split("## ", 1)[0].strip()
+        for heading in (
+            "Outcome and Stopping Point", "Verification", "Blocker and Causal Chain",
+            "Remaining Work and Safest Next Action",
+        )
+    }
+    outcome = sections["Outcome and Stopping Point"].splitlines()[0]
+    normalized_outcome = outcome.replace("**", "").replace("`", "")
+    if not re.match(r"^(?:Status:\s*)?DONE\b", normalized_outcome, re.IGNORECASE):
+        raise AssertionError("implementation report did not finish with DONE")
+    if any(status != "completed" for _, status in entries):
+        raise AssertionError("DONE implementation report has incomplete tickets")
+    verification = sections["Verification"]
+    for pattern, gate in (
+        (r"Tester gate:\*?\*?\s*(?:\*\*)?PASS", "Tester PASS"),
+        (r"Code Review(?:er)?:\*?\*?\s*(?:`|\*\*)?APPROVED", "Code Reviewer approval"),
+        (r"Cleaner:\*?\*?\s*(?:`|\*\*)?PASS", "Cleaner PASS"),
+    ):
+        if not re.search(pattern, verification, re.IGNORECASE):
+            raise AssertionError(f"DONE implementation report missing {gate}")
+    if not re.match(r"None\b", sections["Blocker and Causal Chain"], re.IGNORECASE):
+        raise AssertionError("DONE implementation report still has a blocker")
+    if not re.match(r"None\b", sections["Remaining Work and Safest Next Action"], re.IGNORECASE):
+        raise AssertionError("DONE implementation report still has remaining work")

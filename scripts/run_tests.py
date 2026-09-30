@@ -16,6 +16,7 @@ TESTS = ROOT / "tests"
 PHASES = ("prepare.py", "run.py", "validate.py")
 MODEL_FLAGS = {
     "spec_model": "TEST_SPEC_MODEL",
+    "architect_model": "TEST_ARCHITECT_MODEL",
     "implementation_model": "TEST_IMPLEMENTATION_MODEL",
     "coder_light_model": "TEST_CODER_LIGHT_MODEL",
     "coder_heavy_model": "TEST_CODER_HEAVY_MODEL",

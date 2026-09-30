@@ -16,6 +16,8 @@ permission:
     "git *": deny
     "*/git": deny
     "*/git *": deny
+    "git diff --check*": allow
+    "*/git diff --check*": allow
     "ssh": deny
     "ssh *": deny
     "*/ssh": deny

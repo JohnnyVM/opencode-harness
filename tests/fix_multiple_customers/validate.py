@@ -5,7 +5,13 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from scripts.lifecycle_opencode import expected_primary_models, validate_implementation_handoff, validate_observability
+from scripts.lifecycle_opencode import (
+    expected_primary_models,
+    validate_architect_handoff,
+    validate_coder_assignments,
+    validate_implementation_handoff,
+    validate_observability,
+)
 
 
 VALIDATION_COMMIT = "992714fce90ff9787f1f026d03a9f97da708c074"
@@ -21,10 +27,16 @@ if act is None:
 
 validate_observability(
     artifacts,
-    expected_stages=("spec-orchestrator", "implementation"),
+    expected_stages=("specification", "architecture", "implementation"),
     expected_models=expected_primary_models(),
 )
-validate_implementation_handoff(artifacts, repository / ".scratch/fix-multiple-customers.md")
+specification = repository / ".scratch/fix-multiple-customers-specification.md"
+architecture = repository / ".scratch/fix-multiple-customers-architecture.md"
+if not architecture.is_file():
+    raise AssertionError("architect did not create the architecture file")
+validate_architect_handoff(artifacts, specification, architecture)
+validate_implementation_handoff(artifacts, architecture)
+validate_coder_assignments(artifacts)
 
 implemented_branch = subprocess.run(
     ["git", "branch", "--show-current"],

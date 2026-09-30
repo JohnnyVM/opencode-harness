@@ -1,4 +1,4 @@
-"""Implement the greeting package loaded from its GitHub issue."""
+"""Architect and implement the local greeting specification."""
 
 import os
 from pathlib import Path
@@ -13,10 +13,16 @@ capture_agents(
     harness=Path(__file__).resolve().parents[2],
     invocations=[
         {
+            "stage": "architecture",
+            "agent": "architect",
+            "command": "architect",
+            "prompt": ".scratch/greeting-specification.md --output .scratch/greeting-architecture.md",
+        },
+        {
             "stage": "implementation",
-            "agent": "spec-orchestrator",
+            "agent": "implementation-orchestrator",
             "command": "implement",
-            "prompt": (workspace / "issue-reference.txt").read_text(),
+            "prompt": ".scratch/greeting-architecture.md",
         },
     ],
 )

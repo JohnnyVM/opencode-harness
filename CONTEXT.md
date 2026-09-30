@@ -7,20 +7,38 @@ specification into a guarded, tested, and reviewed implementation.
 
 **Spec Orchestrator**:
 The user-facing agent that resolves requirements and produces a complete
-Implementation Package.
+Specification Package.
 _Avoid_: Lead, designer
 
-**Implementation Package**:
-The immutable validated snapshot of complete package text pasted into the
-Implementation Orchestrator, containing the specification, tickets, dependencies,
-acceptance criteria, Verification Matrix, risks, and unknowns used for one
-implementation run. A completed package has exactly one readiness status,
-`SPEC_APPROVED_BY_AGENT` or `SPEC_APPROVED_BY_USER`; either permits local
-implementation without authorizing external writes. 
-_Avoid_: Unvalidated input
+**Specification Package**:
+The immutable validated product handoff from Spec Orchestrator to Architect. It
+contains behavior, constraints, test intent, acceptance criteria, risks, and
+unknowns, but no architecture or implementation plan. Its readiness status is
+`SPEC_APPROVED_BY_AGENT` or `SPEC_APPROVED_BY_USER`.
+_Avoid_: Implementation Package
+
+**Architect**:
+The model-neutral user-facing agent that grounds a frozen Specification Package
+in the repository and produces an Architecture Package. Architect does not
+implement production code or change product requirements.
+_Avoid_: Coder, Spec Orchestrator
+
+**Architecture Package**:
+The immutable validated snapshot accepted by `/implement`. It embeds the exact
+Specification Package and adds the selected architecture, tickets,
+dependencies, path scope, test strategy, and Verification Matrix for one run.
+Its readiness status is `ARCHITECTURE_READY`.
+_Avoid_: Specification Package, Implementation Package
+
+**Coder Assignment**:
+The validated, self-contained, per-ticket handoff from Implementation
+Orchestrator to one coder. It contains relevant frozen specification and
+architecture decisions, exact scope and criteria, focused checks, repository
+snapshot, dependency outputs, and test-first evidence.
+_Avoid_: Prompt, partial ticket reference
 
 **Implementation Orchestrator**:
-The user-facing agent that coordinates execution of an Implementation Package
+The user-facing agent that coordinates execution of an Architecture Package
 through leaf workers.
 _Avoid_: Lead, coder
 

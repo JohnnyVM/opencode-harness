@@ -6,7 +6,10 @@ import subprocess
 
 from scripts.lifecycle_opencode import (
     expected_primary_models,
+    validate_architect_handoff,
+    validate_coder_assignments,
     validate_implementation_handoff,
+    validate_implementation_report,
     validate_observability,
 )
 
@@ -17,10 +20,17 @@ repository = workspace / "tmp"
 
 validate_observability(
     artifacts,
-    expected_stages=("spec-orchestrator", "implementation"),
+    expected_stages=("specification", "architecture", "implementation"),
     expected_models=expected_primary_models(),
 )
-validate_implementation_handoff(artifacts, repository / ".scratch/basic-greeting.md")
+specification = repository / ".scratch/basic-greeting-specification.md"
+architecture = repository / ".scratch/basic-greeting-architecture.md"
+if not architecture.is_file():
+    raise AssertionError("architect did not create the architecture file")
+validate_architect_handoff(artifacts, specification, architecture)
+validate_implementation_handoff(artifacts, architecture)
+validate_coder_assignments(artifacts)
+validate_implementation_report(artifacts, architecture, expected_status="DONE")
 
 branch = subprocess.run(
     ["git", "branch", "--show-current"],

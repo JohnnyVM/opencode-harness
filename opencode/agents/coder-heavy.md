@@ -20,6 +20,8 @@ permission:
     "git *": deny
     "*/git": deny
     "*/git *": deny
+    "git diff --check*": allow
+    "*/git diff --check*": allow
     "ssh": deny
     "ssh *": deny
     "*/ssh": deny
@@ -38,7 +40,7 @@ Implement exactly the assigned ticket.
 
 The engineering specification is authoritative.
 
-Use the assignment packet supplied in this task as your source of requirements;
+Use the validated Coder Assignment supplied in this task as your sole source of requirements;
 do not assume you can see the orchestrator's conversation or earlier workers'
 task calls. Do not claim the package is absent merely because it is not in a
 repository file. Before editing, check the assigned ticket's objective,
@@ -114,6 +116,9 @@ During implementation:
 
 Forbidden actions:
 - Don't write summaries of the changes in files
+- Don't create `IMPLEMENTATION_SUMMARY.md`, reports, notes, or any other file
+  outside the assignment's explicit allowed paths; return the summary only in
+  your task response
 - Don't modify documentation that is not specifically requested by the orchestrator
 
 Verify the result using the commands specified by the orchestrator.
