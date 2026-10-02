@@ -1,7 +1,6 @@
 """Read-only structural validator for Architecture Packages (v1)."""
 
 import argparse
-import hashlib
 import re
 import sys
 from pathlib import Path
@@ -154,27 +153,6 @@ def validate(text, expected_specification=None):
     """Return every structural finding without changing the supplied text."""
     errors = []
     embedded, outer, raw_embedded = _extract_specification(text, errors)
-    sizes = re.findall(r"^specification-bytes:\s*(\S.*)$", outer, re.MULTILINE)
-    digests = re.findall(r"^specification-sha256:\s*(\S.*)$", outer, re.MULTILINE)
-    if len(sizes) != 1 or not sizes[0].isdigit():
-        errors.append("requires exactly one numeric specification-bytes field")
-    if len(digests) != 1 or not re.fullmatch(r"[0-9a-f]{64}", digests[0]):
-        errors.append("requires exactly one lowercase SHA-256 specification-sha256 field")
-    if len(sizes) == 1 and sizes[0].isdigit() and len(digests) == 1:
-        size = int(sizes[0])
-        wrappers = ("", "\n", "\r\n")
-        candidates = {
-            raw_embedded[len(prefix):len(raw_embedded) - len(suffix) if suffix else None]
-            for prefix in wrappers
-            for suffix in wrappers
-            if raw_embedded.startswith(prefix) and raw_embedded.endswith(suffix)
-        }
-        if not any(
-            len(candidate.encode("utf8")) == size
-            and hashlib.sha256(candidate.encode("utf8")).hexdigest() == digests[0]
-            for candidate in candidates
-        ):
-            errors.append("embedded specification does not match its byte count and SHA-256")
     if expected_specification is not None:
         wrappers = ("", "\n", "\r\n")
         valid_embeddings = {

@@ -1,5 +1,4 @@
 import { execFileSync, spawnSync } from "node:child_process"
-import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { resolve as resolvePath } from "node:path"
@@ -92,13 +91,8 @@ export default async ({ directory }) => ({
       if (!destination) throw new Error("Usage: /architect <source> --output <local-path>")
       const packageInput = loadSource(source, directory, specificationValidator, "Specification Package")
       const normalized = resolvePath(directory, destination)
-      const specificationBytes = Buffer.byteLength(packageInput.text, "utf8")
-      const specificationHash = createHash("sha256").update(packageInput.text, "utf8").digest("hex")
       output.parts.splice(0, output.parts.length,
-        { type: "text", text: `Create an Architecture Package and write it to this output path: ${normalized}\n` +
-          `Use these source frozen-specification integrity values exactly:\n` +
-          `specification-bytes: ${specificationBytes}\n` +
-          `specification-sha256: ${specificationHash}` },
+        { type: "text", text: `Create an Architecture Package and write it to this output path: ${normalized}` },
         { type: "text", text: packageInput.text },
         ...(packageInput.clarification ? [{ type: "text", text: packageInput.clarification }] : []),
       )

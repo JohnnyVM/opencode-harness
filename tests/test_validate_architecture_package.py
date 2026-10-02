@@ -1,5 +1,4 @@
 import importlib.util
-import hashlib
 from pathlib import Path
 import unittest
 
@@ -28,8 +27,6 @@ None
 ## Out of Scope
 None"""
 PACKAGE = f"""status: ARCHITECTURE_READY
-specification-bytes: {len(SPEC.encode("utf8"))}
-specification-sha256: {hashlib.sha256(SPEC.encode("utf8")).hexdigest()}
 <!-- BEGIN SPECIFICATION PACKAGE -->
 {SPEC}
 <!-- END SPECIFICATION PACKAGE -->
@@ -67,13 +64,10 @@ None
 class ArchitectureTests(unittest.TestCase):
     def test_valid_and_rejects_cycle_or_bad_embedding(self):
         self.assertEqual(validator.validate(PACKAGE, SPEC), [])
+        self.assertEqual(validator.validate(PACKAGE), [])
         self.assertIn(
             "embedded specification differs from the supplied Specification Package",
             validator.validate(PACKAGE.replace("AC1: Works", "AC1: Changed"), SPEC),
-        )
-        self.assertIn(
-            "embedded specification does not match its byte count and SHA-256",
-            validator.validate(PACKAGE.replace("AC1: Works", "AC1: Changed")),
         )
         self.assertTrue(any("cyclic" in e.lower() for e in validator.validate(PACKAGE.replace("Dependencies: None", "Dependencies: T1"))))
         self.assertIn(

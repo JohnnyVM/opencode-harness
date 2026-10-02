@@ -1,6 +1,5 @@
 """The command hook must validate both sources before handing text to the agent."""
 
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -32,8 +31,6 @@ None
 ## Out of Scope
 None"""
 PACKAGE = f"""status: ARCHITECTURE_READY
-specification-bytes: {len(SPEC.encode("utf8"))}
-specification-sha256: {hashlib.sha256(SPEC.encode("utf8")).hexdigest()}
 <!-- BEGIN SPECIFICATION PACKAGE -->
 {SPEC}
 <!-- END SPECIFICATION PACKAGE -->

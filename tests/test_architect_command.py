@@ -1,5 +1,4 @@
 import json
-import hashlib
 from pathlib import Path
 import tempfile
 import unittest
@@ -43,11 +42,9 @@ class ArchitectCommandTests(unittest.TestCase):
             result = invoke(source, output, directory)
             self.assertEqual(result.returncode, 0, result.stderr)
             parts = json.loads(result.stdout)
-            self.assertIn(str((directory / output).resolve()), parts[0]["text"])
-            self.assertIn(f"specification-bytes: {len(SPECIFICATION.encode('utf8'))}", parts[0]["text"])
-            self.assertIn(
-                f"specification-sha256: {hashlib.sha256(SPECIFICATION.encode('utf8')).hexdigest()}",
+            self.assertEqual(
                 parts[0]["text"],
+                f"Create an Architecture Package and write it to this output path: {(directory / output).resolve()}",
             )
             self.assertEqual(parts[1], {"type": "text", "text": SPECIFICATION})
 

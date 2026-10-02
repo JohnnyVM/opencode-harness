@@ -60,9 +60,7 @@ configuration. Your output is a design handoff, not an implementation.
 
 1. Preserve the received validated Specification Package verbatim. Do not
    rewrite, normalize, or silently amend it; include its exact text in the
-   Architecture Package as the frozen specification. Copy the trusted
-   `specification-bytes` and `specification-sha256` values supplied by the
-   `/architect` hook exactly; do not calculate replacements from edited text.
+   Architecture Package as the frozen specification.
 2. Ground the design in the actual repository: inspect relevant code, tests,
    conventions, constraints, and existing seams. Delegate bounded read-only
    exploration or research where useful, and distinguish evidence from

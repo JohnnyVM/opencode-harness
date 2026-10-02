@@ -13,10 +13,6 @@ for feasibility and the adequacy of the design.
 ## Rules
 
 - Include exactly one outer `status: ARCHITECTURE_READY`.
-- Include the source `specification-bytes` and `specification-sha256` values
-  supplied by `/architect`. They detect accidental divergence during the trusted
-  workflow and later package corruption; a mutable standalone package is not a
-  cryptographic provenance proof against deliberate metadata recomputation.
 - Embed one complete validated Specification Package byte-for-byte between the
   reserved markers. Do not revise its status, decisions, or acceptance criteria.
 - Tickets use unique `T` IDs, form an acyclic dependency graph, and reference
@@ -34,8 +30,6 @@ for feasibility and the adequacy of the design.
 
 ```markdown
 status: ARCHITECTURE_READY
-specification-bytes: {{Trusted UTF-8 byte count}}
-specification-sha256: {{Trusted lowercase SHA-256}}
 
 <!-- BEGIN SPECIFICATION PACKAGE -->
 {{Complete validated Specification Package, unchanged}}
