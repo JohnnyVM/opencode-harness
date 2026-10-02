@@ -97,8 +97,23 @@ def capture_agents(repository, artifacts, harness, invocations):
     opencode = _require_executable("opencode")
     environment = os.environ.copy()
     agent_config: dict[str, dict] = {
+        "spec-orchestrator": {
+            "permission": {
+                "bash": {
+                    f"python3 {harness / 'opencode/scripts/validate_specification_package.py'}*": "allow",
+                },
+                "external_directory": {
+                    str(harness / "opencode"): "allow",
+                    str(harness / "opencode/**"): "allow",
+                },
+            },
+        },
         "architect": {
             "permission": {
+                "bash": {
+                    f"python3 {harness / 'opencode/scripts/validate_architecture_package.py'}*": "allow",
+                    f"python3 {harness / 'opencode/scripts/validate_specification_package.py'}*": "allow",
+                },
                 "external_directory": {
                     str(harness): "allow",
                     str(harness / "**"): "allow",
@@ -471,7 +486,9 @@ def validate_coder_assignments(artifacts):
             assignments.extend(
                 part.get("text", "")
                 for part in message.get("parts", [])
-                if part.get("type") == "text" and part.get("text", "").startswith("status: ASSIGNMENT_READY")
+                if part.get("type") == "text" and re.search(
+                    r"^status:\s*ASSIGNMENT_READY\s*$", part.get("text", ""), re.MULTILINE
+                )
             )
     if not assignments:
         raise AssertionError("implementation exported no Coder Assignments")
@@ -540,7 +557,7 @@ def _validate_done_report(report, entries):
         raise AssertionError("DONE implementation report has incomplete tickets")
     verification = sections["Verification"]
     for pattern, gate in (
-        (r"Tester gate:\*?\*?\s*(?:\*\*)?PASS", "Tester PASS"),
+        (r"Tester gate:\*?\*?\s*(?:`|\*\*)?PASS\b", "Tester PASS"),
         (r"Code Review(?:er)?:\*?\*?\s*(?:`|\*\*)?APPROVED", "Code Reviewer approval"),
         (r"Cleaner:\*?\*?\s*(?:`|\*\*)?PASS", "Cleaner PASS"),
     ):

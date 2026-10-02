@@ -6,9 +6,14 @@ from pathlib import Path
 from scripts.lifecycle_opencode import capture_agents
 
 
-PROMPT = """Work autonomously and generate a Specification Package for this feature.
+HARNESS_CONFIG = Path(__file__).resolve().parents[2] / "opencode"
+
+PROMPT = f"""Work autonomously and generate a Specification Package for this feature.
 Do not ask questions: use your recommended defaults for non-product ambiguities,
 record them as assumptions, and write no file except the requested package.
+Use the contract at {HARNESS_CONFIG / 'contracts/specification-package.md'}
+and validator at {HARNESS_CONFIG / 'scripts/validate_specification_package.py'}
+instead of globally installed copies.
 
 Modify the @buy and @sale commands to accept default_code as a product
 identifier. An all-digit product argument is a barcode; other product arguments
@@ -26,7 +31,7 @@ workspace = Path(os.environ["TEST_WORKSPACE"])
 capture_agents(
     repository=workspace / "tmp",
     artifacts=Path(os.environ["TEST_ARTIFACTS"]),
-    harness=Path(__file__).resolve().parents[2],
+    harness=HARNESS_CONFIG.parent,
     invocations=[
         {"stage": "specification", "agent": "spec-orchestrator", "prompt": PROMPT},
         {

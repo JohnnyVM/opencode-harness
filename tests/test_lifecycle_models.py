@@ -26,7 +26,7 @@ class LifecycleModelTests(unittest.TestCase):
             artifacts = Path(temp)
             payload = {"messages": [{
                 "info": {"role": "user", "agent": "coder-light"},
-                "parts": [{"type": "text", "text": ASSIGNMENT}],
+                "parts": [{"type": "text", "text": "Implement this ticket.\n\n" + ASSIGNMENT}],
             }]}
             path = write_session(artifacts, "implementation", payload, "coder")
             lifecycle_opencode.validate_coder_assignments(artifacts)
@@ -49,7 +49,7 @@ class LifecycleModelTests(unittest.TestCase):
             report = ("## Outcome and Stopping Point\nStatus: DONE — all gates passed.\n"
                       "## Ticket Ledger\n- T1: completed — src/one.py\n"
                       "- T2: completed — src/two.py\n"
-                      "## Verification\nTester gate: **PASS**\nCode Reviewer: APPROVED\n"
+                      "## Verification\n- **Tester gate:** `PASS`.\nCode Reviewer: APPROVED\n"
                       "Cleaner: PASS\n"
                       "## Blocker and Causal Chain\nNone.\n"
                       "## Remaining Work and Safest Next Action\nNone.\n")
@@ -61,6 +61,10 @@ class LifecycleModelTests(unittest.TestCase):
             path = write_session(root, "implementation", session)
             lifecycle_opencode.validate_implementation_report(root, package)
             lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
+            session["messages"][1]["parts"][0]["text"] = report.replace("`PASS`", "`FAIL`")
+            path.write_text(json.dumps(session))
+            with self.assertRaisesRegex(AssertionError, "Tester PASS"):
+                lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
             session["messages"][1]["parts"][0]["text"] = report.replace(
                 "- T2: completed — src/two.py\n", ""
             )
@@ -186,6 +190,20 @@ class LifecycleModelTests(unittest.TestCase):
                 "coder-heavy": "acme/heavy",
             })
             self.assertIn("permission", config["agent"]["implementation-orchestrator"])
+            self.assertEqual(
+                config["agent"]["spec-orchestrator"]["permission"]["external_directory"]
+                [str(root / "opencode/**")], "allow"
+            )
+            self.assertEqual(
+                config["agent"]["spec-orchestrator"]["permission"]["bash"]
+                [f"python3 {root / 'opencode/scripts/validate_specification_package.py'}*"],
+                "allow",
+            )
+            self.assertEqual(
+                config["agent"]["architect"]["permission"]["bash"]
+                [f"python3 {root / 'opencode/scripts/validate_architecture_package.py'}*"],
+                "allow",
+            )
             self.assertEqual(captured["command"][-3:], ["--command", "implement", "package.md"])
             self.assertEqual(config["agent"]["architect"]["model"], "acme/architect")
             self.assertEqual(lifecycle_opencode.expected_primary_models(),
