@@ -132,6 +132,7 @@ python3 scripts/run_tests.py fix_multiple_customers \
   --architect-model openai/gpt-6-sol \
   --implementation-model openai/gpt-6-luna \
   --coder-light-model ovhcloud/qwen3-coder-30b-a3b-instruct \
+  --coder-medium-model openai/gpt-6-luna \
   --coder-heavy-model openai/gpt-6-luna
 python3 scripts/run_tests.py fix_multiple_customers --mcp ripwire
 python3 scripts/run_tests.py fix_multiple_customers --no-mcp ripwire
@@ -156,8 +157,8 @@ PASS, and Code Reviewer approval, alongside exact handoffs and the guarded branc
 This scenario requires repository access through the authenticated `gh` CLI and SSH.
 GitHub issue URL and shorthand loading are covered by command integration tests
 using local fixtures rather than mutable external issue bodies.
-The five optional model flags select the Spec Orchestrator, model-neutral
-Architect runtime, Implementation Orchestrator, light coder, and heavy coder
+The six optional model flags select the Spec Orchestrator, model-neutral
+Architect runtime, Implementation Orchestrator, light coder, medium coder, and heavy coder
 independently. In lifecycle tests only, an omitted Architect model inherits the
 selected Spec model; the production Architect agent remains unpinned. Other
 omitted flags retain their agent defaults. Each model uses the `provider/model`
@@ -173,7 +174,15 @@ before running them.
 
 After updating the agent names, remove any previously installed global links
 for `coder-qwen.md` and `coder-gpt.md`, rerun `python3 scripts/install.py`, and
-restart OpenCode to load `coder-light` and `coder-heavy`.
+restart OpenCode to load `coder-light`, `coder-medium`, and `coder-heavy`.
+
+The Implementation Orchestrator starts straightforward tickets with `coder-light`
+and complex tickets with `coder-medium` (`openai/gpt-6-luna`). Exhausting light's
+attempt budget escalates to medium. Medium has three dispatches per ticket,
+including its initial attempt and corrections across later verification/review
+cycles; exhaustion escalates to `coder-heavy`. The orchestrator records tier,
+remaining attempts, and escalation reasons in its ticket ledger. These dispatch
+budgets are separate from a worker's tool-step limit.
 
 Instrumented OpenCode tests store raw event streams, session exports, exposed
 model reasoning, model usage and timing metrics, `opencode-trace` records, and

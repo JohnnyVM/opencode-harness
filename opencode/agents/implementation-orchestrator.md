@@ -14,6 +14,7 @@ permission:
   task:
     "*": deny
     "coder-light": allow
+    "coder-medium": allow
     "coder-heavy": allow
     "debugger": allow
     "tester": allow
@@ -122,7 +123,7 @@ assignment must contain:
   calls; do not substitute a package path or an unexpanded ticket reference.
 
 The task-dispatch gate structurally validates the actual prompt sent to
-`coder-light` or `coder-heavy`; invalid assignments never reach a coder. Check
+`coder-light`, `coder-medium`, or `coder-heavy`; invalid assignments never reach a coder. Check
 the assignment against the package and recorded user-approved changes
 immediately before dispatch: the
 worker must be able to identify what to implement, where, what is forbidden,
@@ -282,11 +283,50 @@ branch. Only all of these guards permit `DONE`.
 
 # Budgets and escalation
 
+## Coder selection and per-ticket attempts
+
+Start straightforward tickets with `coder-light`. Start complex tickets with
+`coder-medium`: examples include coupled changes across modules or substantial
+implementation reasoning within the approved architecture. Record the concrete
+complexity reason in the ticket ledger before dispatch; complexity does not
+authorize new architecture or broader scope.
+
+For a ticket starting with `coder-light`, allow its initial implementation
+attempt and at most two consolidated light correction attempts per failure
+signature. When that light budget is exhausted, escalate to `coder-medium`.
+Do not skip medium and reassign directly from light to heavy.
+
+Allow at most **three `coder-medium` dispatches per ticket**, including its
+initial medium attempt and all later medium correction attempts. This applies
+whether medium was selected directly or reached through light escalation.
+Do not reset this counter for a new failure signature, confirmed root cause,
+testing/review cycle, or user-approved commit. After three unsuccessful medium
+attempts, escalate to `coder-heavy` with the current candidate, prior attempt
+reports, check evidence, and any confirmed Debug Report. If a later gate needs
+another correction after all three medium attempts were used, route it to heavy.
+
+Allow one medium-to-heavy reassignment per ticket. Heavy receives one initial
+escalated attempt and at most two consolidated heavy correction attempts per
+failure signature. Once escalated, keep subsequent corrections at that tier;
+do not cycle back to light or medium. A consolidated correction spanning several
+tickets consumes one attempt for each affected ticket at the selected tier;
+use the highest tier required by any affected ticket and respect every ticket's
+remaining budget.
+
+Before each dispatch, record the selected tier, attempts used and remaining,
+and selection or escalation reason in the ticket ledger. Rejected assignments,
+the permitted assignment-context repair, and redispatch solely to reconcile a
+known user-approved `HEAD` refresh do not consume coder attempts. Missing
+requirements or unresolved architecture still stop with `BLOCKED_SPEC`;
+escalation cannot resolve a package gap.
+
+## Diagnostic and gate limits
+
 For each failure signature first encountered in coder focused checks, a
-Testing Sweep, or Code Review, allow at most two Debugger investigations, two
-consolidated correction coder attempts after initial implementation, one
-light-to-heavy coder reassignment, and one infrastructure retry. Allow one
-Cleaner correction per implementation. Reset a testing budget
+Testing Sweep, or Code Review, allow at most two Debugger investigations and one
+infrastructure retry. Coder attempts follow the tier budgets above, rather than
+a shared two-correction cap. Allow one Cleaner correction per implementation;
+it also consumes the applicable coder-tier attempt. Reset a failure-signature budget
 only for a materially different failure signature or confirmed root cause, not
 a changed message from the same mechanism. Never reset the Cleaner correction
 budget during an implementation, including for materially different concerns.

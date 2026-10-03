@@ -25,7 +25,7 @@ class LifecycleModelTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             artifacts = Path(temp)
             payload = {"messages": [{
-                "info": {"role": "user", "agent": "coder-light"},
+                "info": {"role": "user", "agent": "coder-medium"},
                 "parts": [{"type": "text", "text": "Implement this ticket.\n\n" + ASSIGNMENT}],
             }]}
             path = write_session(artifacts, "implementation", payload, "coder")
@@ -119,22 +119,27 @@ class LifecycleModelTests(unittest.TestCase):
                     "from pathlib import Path\n"
                     "Path(os.environ['TEST_WORKSPACE'], '" + phase + "').write_text("
                     "os.environ.get('TEST_SPEC_MODEL', '') + '|' + "
+                    "os.environ.get('TEST_CODER_MEDIUM_MODEL', '') + '|' + "
                     "os.environ.get('TEST_CODER_HEAVY_MODEL', ''))\n"
                 )
             workspace = root / "workspace"
             workspace.mkdir()
-            with patch.dict(os.environ, {"TEST_CODER_HEAVY_MODEL": "stale/model"}):
+            with patch.dict(os.environ, {
+                "TEST_CODER_MEDIUM_MODEL": "stale/medium",
+                "TEST_CODER_HEAVY_MODEL": "stale/heavy",
+            }):
                 self.assertTrue(run_tests.run_test(test, workspace, root / "artifacts", {
                     "models": {
                         "spec_model": "acme/spec",
+                        "coder_medium_model": "acme/medium",
                         "coder_heavy_model": "acme/heavy",
                     },
                 }))
             for phase in run_tests.PHASES:
-                self.assertEqual((workspace / phase).read_text(), "acme/spec|acme/heavy")
+                self.assertEqual((workspace / phase).read_text(), "acme/spec|acme/medium|acme/heavy")
             self.assertTrue(run_tests.run_test(test, workspace, root / "artifacts"))
             for phase in run_tests.PHASES:
-                self.assertEqual((workspace / phase).read_text(), "|")
+                self.assertEqual((workspace / phase).read_text(), "||")
 
     def test_runner_passes_mcp_selections_to_each_phase(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -168,6 +173,7 @@ class LifecycleModelTests(unittest.TestCase):
             "TEST_ARCHITECT_MODEL": "acme/architect",
             "TEST_IMPLEMENTATION_MODEL": "acme/implementation",
             "TEST_CODER_LIGHT_MODEL": "acme/light",
+            "TEST_CODER_MEDIUM_MODEL": "acme/medium",
             "TEST_CODER_HEAVY_MODEL": "acme/heavy",
         }
         with tempfile.TemporaryDirectory() as temp, patch.dict(os.environ, overrides):
@@ -192,6 +198,7 @@ class LifecycleModelTests(unittest.TestCase):
                 "architect": "acme/architect",
                 "implementation-orchestrator": "acme/implementation",
                 "coder-light": "acme/light",
+                "coder-medium": "acme/medium",
                 "coder-heavy": "acme/heavy",
             })
             self.assertIn("permission", config["agent"]["implementation-orchestrator"])
@@ -248,12 +255,15 @@ class LifecycleModelTests(unittest.TestCase):
             self.assertEqual(lifecycle_opencode.selected_models(), {})
             self.assertEqual(lifecycle_opencode.expected_primary_models(),
                              ("openai/gpt-6-sol", "openai/gpt-6-sol", "openai/gpt-6-luna"))
+            self.assertEqual(lifecycle_opencode.DEFAULT_MODELS["coder-medium"],
+                             "openai/gpt-6-luna")
 
     def test_validation_detects_wrong_coder_model_when_invoked(self):
         with tempfile.TemporaryDirectory() as temp, patch.dict(
             os.environ, {
                 "TEST_ARCHITECT_MODEL": "acme/architect",
                 "TEST_CODER_LIGHT_MODEL": "acme/light",
+                "TEST_CODER_MEDIUM_MODEL": "acme/medium",
             }
         ):
             artifacts = Path(temp)
@@ -263,6 +273,7 @@ class LifecycleModelTests(unittest.TestCase):
                 ("architecture", "architect", "wrong/architect"),
                 ("implementation", "implementation-orchestrator", "openai/gpt-6-luna"),
                 ("implementation", "coder-light", "wrong/model"),
+                ("implementation", "coder-medium", "wrong/medium"),
             ):
                 session_id = agent
                 session = {"id": session_id, "agent": agent, "model": model,
@@ -277,7 +288,7 @@ class LifecycleModelTests(unittest.TestCase):
                 stages[-1]["sessions"].append(session)
             (artifacts / "metrics.json").write_text(json.dumps({
                 "stages": stages,
-                "totals": {"tokens": {"input": 4, "output": 4, "reasoning": 0,
+                "totals": {"tokens": {"input": 5, "output": 5, "reasoning": 0,
                                       "cache_read": 0, "cache_write": 0}, "cost": 0,
                            "elapsed_seconds": 2},
                 "opencode_trace": {"initialized": True, "records": 0, "models": []},
@@ -289,15 +300,16 @@ class LifecycleModelTests(unittest.TestCase):
                     lifecycle_opencode.expected_primary_models(),
                 )
             stages[1]["sessions"][0]["model"] = "acme/architect"
-            (artifacts / "metrics.json").write_text(json.dumps({
-                **json.loads((artifacts / "metrics.json").read_text()), "stages": stages
-            }))
-            with self.assertRaisesRegex(AssertionError, "coder-light used.*wrong/model"):
-                lifecycle_opencode.validate_observability(
-                    artifacts, ("specification", "architecture", "implementation"),
-                    lifecycle_opencode.expected_primary_models(),
-                )
-            stages[-1]["sessions"][-1]["model"] = "acme/light"
+            for session, expected in zip(stages[-1]["sessions"][1:], ("acme/light", "acme/medium")):
+                (artifacts / "metrics.json").write_text(json.dumps({
+                    **json.loads((artifacts / "metrics.json").read_text()), "stages": stages
+                }))
+                with self.assertRaisesRegex(AssertionError, f"{session['agent']} used.*wrong/"):
+                    lifecycle_opencode.validate_observability(
+                        artifacts, ("specification", "architecture", "implementation"),
+                        lifecycle_opencode.expected_primary_models(),
+                    )
+                session["model"] = expected
             (artifacts / "metrics.json").write_text(json.dumps({
                 **json.loads((artifacts / "metrics.json").read_text()), "stages": stages
             }))

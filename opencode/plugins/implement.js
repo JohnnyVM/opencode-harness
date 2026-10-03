@@ -132,7 +132,7 @@ export default async ({ directory }) => ({
   },
   "tool.execute.before": async (input, output) => {
     if (input.tool !== "task") return
-    if (!["coder-light", "coder-heavy"].includes(output.args?.subagent_type)) return
+    if (!["coder-light", "coder-medium", "coder-heavy"].includes(output.args?.subagent_type)) return
     const result = spawnSync("python3", [assignmentValidator], { input: output.args.prompt, encoding: "utf8" })
     if (result.error) throw new Error(`Cannot run coder assignment validator: ${result.error.message}`, { cause: result.error })
     if (result.status !== 0) {

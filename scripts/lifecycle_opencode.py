@@ -17,6 +17,7 @@ MODEL_ENV = {
     "architect": "TEST_ARCHITECT_MODEL",
     "implementation-orchestrator": "TEST_IMPLEMENTATION_MODEL",
     "coder-light": "TEST_CODER_LIGHT_MODEL",
+    "coder-medium": "TEST_CODER_MEDIUM_MODEL",
     "coder-heavy": "TEST_CODER_HEAVY_MODEL",
 }
 DEFAULT_MODELS = {
@@ -24,6 +25,7 @@ DEFAULT_MODELS = {
     "architect": "openai/gpt-6-sol",
     "implementation-orchestrator": "openai/gpt-6-luna",
     "coder-light": "ovhcloud/qwen3-coder-30b-a3b-instruct",
+    "coder-medium": "openai/gpt-6-luna",
     "coder-heavy": "openai/gpt-6-luna",
 }
 MCP_NAMES = ("playwright", "ripwire")
@@ -399,7 +401,7 @@ def validate_observability(artifacts, expected_stages, expected_models):
         expected = configured_models.get(agent, DEFAULT_MODELS[agent])
         if actual and actual != {expected}:
             raise AssertionError(f"{agent} used {sorted(actual)}, expected {expected}")
-    for agent in ("coder-light", "coder-heavy"):
+    for agent in ("coder-light", "coder-medium", "coder-heavy"):
         expected = configured_models.get(agent, DEFAULT_MODELS[agent])
         actual = {session["model"] for session in sessions if session["agent"] == agent}
         if actual and actual != {expected}:
@@ -516,7 +518,7 @@ def validate_coder_assignments(artifacts):
         payload = json.loads(path.read_text())
         for message in payload.get("messages", []):
             info = message.get("info", {})
-            if info.get("role") != "user" or info.get("agent") not in {"coder-light", "coder-heavy"}:
+            if info.get("role") != "user" or info.get("agent") not in {"coder-light", "coder-medium", "coder-heavy"}:
                 continue
             assignments.extend(
                 part.get("text", "")

@@ -54,8 +54,8 @@ def invoke(agent, prompt):
 
 
 class CoderAssignmentGateTests(unittest.TestCase):
-    def test_valid_assignment_allowed_and_invalid_refused_for_both_coders(self):
-        for coder in ("coder-light", "coder-heavy"):
+    def test_valid_assignment_allowed_and_invalid_refused_for_all_coders(self):
+        for coder in ("coder-light", "coder-medium", "coder-heavy"):
             good = invoke(coder, ASSIGNMENT)
             self.assertEqual(good.returncode, 0, good.stderr)
             self.assertEqual(good.stdout, "accepted")

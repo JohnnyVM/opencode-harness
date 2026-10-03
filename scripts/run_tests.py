@@ -19,6 +19,7 @@ MODEL_FLAGS = {
     "architect_model": "TEST_ARCHITECT_MODEL",
     "implementation_model": "TEST_IMPLEMENTATION_MODEL",
     "coder_light_model": "TEST_CODER_LIGHT_MODEL",
+    "coder_medium_model": "TEST_CODER_MEDIUM_MODEL",
     "coder_heavy_model": "TEST_CODER_HEAVY_MODEL",
 }
 ENABLED_MCPS_ENV = "TEST_ENABLED_MCPS"
