@@ -9,6 +9,7 @@ permission:
     "CONTEXT.md": allow
     "CONTEXT-MAP.md": allow
     "docs/adr/**": allow
+    "docs/spec/**": allow
     "docs/specs/**": allow
     "specs/**": allow
     "**/CONTEXT.md": allow

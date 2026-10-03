@@ -7,6 +7,7 @@ permission:
     "*": ask
     ".scratch/**": allow
     "specs/**": allow
+    "docs/spec/**": allow
     "docs/specs/**": allow
 
   skill:

@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process"
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
-import { resolve as resolvePath } from "node:path"
+import { extname, resolve as resolvePath } from "node:path"
 
 const implementationValidator = fileURLToPath(new URL("../scripts/validate_architecture_package.py", import.meta.url))
 const specificationValidator = fileURLToPath(new URL("../scripts/validate_specification_package.py", import.meta.url))
@@ -77,18 +77,39 @@ function commandArguments(value) {
   return argumentsText
 }
 
+function architectArguments(value) {
+  const usage = "Usage: /architect <source> [<local-path> | --output <local-path>]"
+  let text = value.trim()
+  // Preserve the legacy form where the entire flagged command is quoted.
+  if (/^("[^"]*"|'[^']*')$/.test(text) && /\s--output(?:\s|$)/.test(text)) {
+    text = commandArguments(text)
+  }
+  const flagged = text.split(/\s+--output(?:\s+|$)/)
+  if (flagged.length > 1) {
+    if (flagged.length !== 2 || !flagged[0].trim() || !flagged[1].trim()) throw new Error(usage)
+    return { source: commandArguments(flagged[0]), destination: commandArguments(flagged[1]) }
+  }
+
+  const tokens = []
+  const token = /\s*(?:"([^"]*)"|'([^']*)'|([^\s"']+))(?=\s|$)/gy
+  while (token.lastIndex < text.length) {
+    const match = token.exec(text)
+    if (!match) throw new Error(usage)
+    tokens.push(match[1] ?? match[2] ?? match[3])
+  }
+  if (tokens.length < 1 || tokens.length > 2 || tokens.some(part => !part || part.startsWith("--"))) {
+    throw new Error(usage)
+  }
+  const [source, explicitDestination] = tokens
+  const extension = extname(source)
+  const stem = extension ? source.slice(0, -extension.length) : source
+  return { source, destination: explicitDestination ?? `${stem}-architecture${extension}` }
+}
+
 export default async ({ directory }) => ({
   "command.execute.before": async (input, output) => {
     if (input.command === "architect") {
-      const argumentsText = commandArguments(input.arguments)
-      const marker = " --output "
-      const index = argumentsText.indexOf(marker)
-      if (index < 0 || argumentsText.indexOf(marker, index + marker.length) >= 0) {
-        throw new Error("Usage: /architect <source> --output <local-path>")
-      }
-      const source = argumentsText.slice(0, index)
-      const destination = argumentsText.slice(index + marker.length).trim()
-      if (!destination) throw new Error("Usage: /architect <source> --output <local-path>")
+      const { source, destination } = architectArguments(input.arguments)
       const packageInput = loadSource(source, directory, specificationValidator, "Specification Package")
       const normalized = resolvePath(directory, destination)
       output.parts.splice(0, output.parts.length,

@@ -126,6 +126,7 @@ python3 scripts/run_tests.py
 python3 scripts/run_tests.py lifecycle_smoke
 python3 scripts/run_tests.py basic_greeting
 python3 scripts/run_tests.py github_issue_greeting
+python3 scripts/run_tests.py brand_selection
 python3 scripts/run_tests.py fix_multiple_customers \
   --spec-model openai/gpt-6-sol \
   --architect-model openai/gpt-6-sol \
@@ -146,6 +147,13 @@ Pass one or more test directory names to run only those tests.
 `basic_greeting` is the lowest-cost end-to-end scenario: it creates a local
 Python repository, runs Specification, Architecture, and Implementation stages,
 and verifies both exact handoffs, the guarded branch, and focused `unittest`.
+`brand_selection` clones `git@github.com:Guadalsistema/connector-proyect.git`
+at commit `20376ca2a63b5e447258fb9ca4cdc4a63c7593cb`, generates
+`docs/spec/brand-selection.md` without questions, invokes `/architect` with its
+default `-architecture` output path, and passes that package to `/implement`.
+It requires a final `DONE` report with every ticket completed, Tester and Cleaner
+PASS, and Code Reviewer approval, alongside exact handoffs and the guarded branch.
+This scenario requires repository access through the authenticated `gh` CLI and SSH.
 GitHub issue URL and shorthand loading are covered by command integration tests
 using local fixtures rather than mutable external issue bodies.
 The five optional model flags select the Spec Orchestrator, model-neutral
@@ -171,3 +179,6 @@ Instrumented OpenCode tests store raw event streams, session exports, exposed
 model reasoning, model usage and timing metrics, `opencode-trace` records, and
 `act` output under `artifacts/`. These files may contain prompts, tool data,
 source content, or secrets and must not be committed.
+Runtime logs are captured in each stage's `stderr.log`. A zero CLI exit code
+does not advance the lifecycle unless the primary session ends with a final
+text response; incomplete tool-call sessions stop at their originating stage.

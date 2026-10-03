@@ -92,6 +92,32 @@ def _child_session_ids(value):
     return session_ids
 
 
+def _validate_stage_completion(stage_dir, agent, root_ids):
+    """Reject a CLI success that stopped on tools instead of a final reply."""
+    for session_id in root_ids:
+        payload = json.loads((stage_dir / "sessions" / f"{session_id}.json").read_text())
+        replies = [message for message in payload.get("messages", [])
+                   if message.get("info", {}).get("role") == "assistant"
+                   and message["info"].get("agent") == agent]
+        if not replies:
+            continue
+        final = replies[-1]
+        info = final["info"]
+        text = "\n".join(part.get("text", "") for part in final.get("parts", [])
+                         if part.get("type") == "text").strip()
+        if info.get("finish") == "stop" and not info.get("error") and text:
+            return
+        tool_errors = [part["state"]["error"] for message in replies
+                       for part in message.get("parts", [])
+                       if part.get("type") == "tool" and part.get("state", {}).get("error")]
+        detail = info.get("error") or "; ".join(tool_errors) or "no final text response"
+        raise RuntimeError(
+            f"{stage_dir.name}: {agent} did not complete (finish={info.get('finish')!r}): "
+            f"{detail}. See {stage_dir / 'stderr.log'} and exported sessions."
+        )
+    raise RuntimeError(f"{stage_dir.name}: no final response from {agent}; see {stage_dir}")
+
+
 def capture_agents(repository, artifacts, harness, invocations):
     """Run agent invocations and persist raw sessions, traces, and metrics."""
     opencode = _require_executable("opencode")
@@ -115,6 +141,8 @@ def capture_agents(repository, artifacts, harness, invocations):
                     f"python3 {harness / 'opencode/scripts/validate_specification_package.py'}*": "allow",
                 },
                 "external_directory": {
+                    str(Path.home() / ".config/opencode"): "allow",
+                    str(Path.home() / ".config/opencode/**"): "allow",
                     str(harness): "allow",
                     str(harness / "**"): "allow",
                     str(repository.parent): "allow",
@@ -245,6 +273,9 @@ def capture_agents(repository, artifacts, harness, invocations):
         command = [
             opencode,
             "run",
+            "--print-logs",
+            "--log-level",
+            "INFO",
             "--agent",
             invocation["agent"],
             "--format",
@@ -255,6 +286,8 @@ def capture_agents(repository, artifacts, harness, invocations):
         ]
         if invocation.get("command"):
             command.extend(("--command", invocation["command"]))
+        if invocation.get("session"):
+            command.extend(("--session", invocation["session"]))
         command.append(invocation["prompt"])
         for path in invocation.get("files", ()):
             command.extend(("--file", str(path)))
@@ -272,15 +305,17 @@ def capture_agents(repository, artifacts, harness, invocations):
             )
             elapsed = time.monotonic() - started
             ended_ms = int(time.time() * 1000)
+            root_ids = _event_session_ids(events)
             sessions = export_sessions(
                 stage_dir,
                 started_ms,
                 ended_ms,
-                _event_session_ids(events),
+                root_ids,
                 stderr,
             )
         if result.returncode:
             raise subprocess.CalledProcessError(result.returncode, result.args)
+        _validate_stage_completion(stage_dir, invocation["agent"], root_ids)
         return {
             "stage": invocation["stage"],
             "agent": invocation["agent"],
@@ -531,6 +566,7 @@ def validate_implementation_report(artifacts, package, expected_status=None):
             if f"## {heading}" not in report:
                 raise AssertionError(f"implementation report missing {heading}")
         ledger = report.split("## Ticket Ledger", 1)[1].split("## Verification", 1)[0]
+        ledger = ledger.replace("**", "").replace("`", "")
         entries = re.findall(r"^- (T\d+): (completed|partial|blocked|not started)\b",
                              ledger, re.MULTILINE)
         if sorted(ticket for ticket, _ in entries) != sorted(tickets):

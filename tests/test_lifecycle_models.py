@@ -61,6 +61,11 @@ class LifecycleModelTests(unittest.TestCase):
             path = write_session(root, "implementation", session)
             lifecycle_opencode.validate_implementation_report(root, package)
             lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
+            session["messages"][1]["parts"][0]["text"] = report.replace(
+                "T1: completed", "**T1: completed**"
+            ).replace("T2: completed", "**T2: completed**")
+            path.write_text(json.dumps(session))
+            lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
             session["messages"][1]["parts"][0]["text"] = report.replace("`PASS`", "`FAIL`")
             path.write_text(json.dumps(session))
             with self.assertRaisesRegex(AssertionError, "Tester PASS"):
@@ -206,6 +211,10 @@ class LifecycleModelTests(unittest.TestCase):
             )
             self.assertEqual(captured["command"][-3:], ["--command", "implement", "package.md"])
             self.assertEqual(config["agent"]["architect"]["model"], "acme/architect")
+            self.assertEqual(
+                config["agent"]["architect"]["permission"]["external_directory"]
+                [str(Path.home() / ".config/opencode/**")], "allow"
+            )
             self.assertEqual(lifecycle_opencode.expected_primary_models(),
                              ("acme/spec", "acme/architect", "acme/implementation"))
 
