@@ -49,8 +49,8 @@ class LifecycleModelTests(unittest.TestCase):
             report = ("## Outcome and Stopping Point\nStatus: DONE — all gates passed.\n"
                       "## Ticket Ledger\n- T1: completed — src/one.py\n"
                       "- T2: completed — src/two.py\n"
-                      "## Verification\n- **Tester gate:** `PASS`.\nCode Reviewer: APPROVED\n"
-                      "Cleaner: PASS\n"
+                       "## Verification\nCleaner: PASS\n- **Tester gate:** `PASS`.\n"
+                       "Code Reviewer: APPROVED\n"
                       "## Blocker and Causal Chain\nNone.\n"
                       "## Remaining Work and Safest Next Action\nNone.\n")
             session = {"messages": [

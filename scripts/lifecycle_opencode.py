@@ -593,12 +593,13 @@ def _validate_done_report(report, entries):
         raise AssertionError("implementation report did not finish with DONE")
     if any(status != "completed" for _, status in entries):
         raise AssertionError("DONE implementation report has incomplete tickets")
-    verification = sections["Verification"]
-    for pattern, gate in (
-        (r"Tester gate:\*?\*?\s*(?:`|\*\*)?PASS\b", "Tester PASS"),
-        (r"Code Review(?:er)?:\*?\*?\s*(?:`|\*\*)?APPROVED", "Code Reviewer approval"),
-        (r"Cleaner:\*?\*?\s*(?:`|\*\*)?PASS", "Cleaner PASS"),
-    ):
+    verification = sections["Verification"].replace("**", "").replace("`", "")
+    gates = (
+        (r"Cleaner:\s*PASS\b", "Cleaner PASS"),
+        (r"Tester(?: gate)?:\s*PASS\b", "Tester PASS"),
+        (r"Code Review(?:er)?:\s*(?:Verdict:\s*)?APPROVED\b", "Code Reviewer approval"),
+    )
+    for pattern, gate in gates:
         if not re.search(pattern, verification, re.IGNORECASE):
             raise AssertionError(f"DONE implementation report missing {gate}")
     if not re.match(r"None\b", sections["Blocker and Causal Chain"], re.IGNORECASE):

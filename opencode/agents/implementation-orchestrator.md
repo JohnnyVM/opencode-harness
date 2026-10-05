@@ -201,16 +201,38 @@ user-approved commit as an implementation failure or charge a correction attempt
 The implementation main path:
 
 ```text
-ARCHITECTURE_RECEIVED -> PLANNING -> IMPLEMENTING -> TESTING -> REVIEWING -> DONE
+ARCHITECTURE_RECEIVED -> PLANNING -> IMPLEMENTING -> CLEANING -> TESTING -> REVIEWING -> DONE
 ```
 
-# Tester gate
+# Cleaner gate
 
 After all initial tickets are complete:
 
 1. Inspect the combined uncommitted diff and changed-file scope.
 2. Capture the guarded branch/ref/index/worktree/untracked/metadata snapshot.
-3. Invoke Tester with every required Verification Matrix command and
+3. Invoke Cleaner with the validated specification, implementation scope,
+   immutable baseline, exact current `HEAD`, combined diff, changed-file list,
+   known risks, and intentionally deferred or out-of-scope work.
+
+The Cleaner packet must contain the exact `git diff` for the current uncommitted
+candidate, restricted to the candidate's changed paths. Paste that diff verbatim;
+do not substitute a baseline-to-`HEAD` diff, a path list, a summary, or a
+reference to prior tool output. If the packet is too large, reduce other packet
+context rather than omitting the diff.
+
+Cleaner is read-only and considers only material, clearly safe, in-scope
+simplification introduced by the implementation. A Cleaner `NOT_PASS` with
+material simplification findings becomes one consolidated coder correction.
+Rerun Cleaner after that correction. A Cleaner precondition failure is
+`BLOCKED_OPERATION`; preserve the candidate and report the required operator
+action. Only a Cleaner `PASS` permits the final Tester gate.
+
+# Tester gate
+
+After Cleaner returns `PASS`:
+
+1. Capture the guarded branch/ref/index/worktree/untracked/metadata snapshot.
+2. Invoke Tester with every required Verification Matrix command and
    working directory, the package acceptance criteria, and the supplied
    branch/current-`HEAD` context.
 
@@ -242,7 +264,7 @@ preserves the candidate and repository state.
 
 # TODO Same than implementation orchestrator a "input format" must be defined
 
-# Review, Cleaner, and completion
+# Review and completion
 
 Invoke Code Reviewer only after Tester returns `PASS`.
 Supply the validated package, combined changed-file list and diff, current
@@ -257,24 +279,19 @@ reviewed-commit diff and paste it verbatim into each review packet; a prose
 summary, changed expression list, or path list does not satisfy the combined
 diff requirement. Include the changed-file list separately.
 
-After `Verdict: APPROVED`, remain in `REVIEWING` and invoke `cleaner`. Supply
-the validated specification and package scope, immutable baseline, exact reviewed commit
-and current `HEAD`, combined diff, Tester reports, Reviewer approval, known
-risks, and intentionally deferred or out-of-scope work.
-
-Cleaner is read-only and considers only material, clearly safe, in-scope
-simplification introduced by the implementation. Cleaner `PASS` permits final
-guards. A Cleaner `NOT_PASS` containing material simplification findings becomes
-one consolidated coder correction, then repeats the complete Tester gate,
-additive commit, Code Review, and Cleaner.
+`Verdict: APPROVED` permits final guards. A Code Reviewer correction becomes
+one consolidated coder correction, then returns to the Cleaner gate before
+repeating the complete Tester gate and Code Review. Do not use prior Cleaner,
+Tester, or review evidence to approve a corrected candidate.
 
 On the `REVIEWING` to `DONE` edge, verify the applicable Tester report is
-`PASS`, current `HEAD` is the commit approved by Code Reviewer, Cleaner returned
-`PASS`, the current branch is the admitted implementation branch, the worktree
-is clean, the original/default branch remains exactly at its admitted baseline,
-and any explicitly authorized remote ref contains only the expected published
-implementation commit. A user-approved commit advancing `HEAD` returns the run
-to verification under User-approved commits rather than a terminal block.
+`PASS` after the applicable Cleaner `PASS`, current `HEAD` is the commit
+approved by Code Reviewer, the current branch is the admitted implementation
+branch, the worktree is clean, the original/default branch remains exactly at
+its admitted baseline, and any explicitly authorized remote ref contains only
+the expected published implementation commit. A user-approved commit advancing
+`HEAD` returns the run to the Cleaner gate under User-approved commits rather
+than a terminal block.
 Any remaining unexplained mismatch is `BLOCKED_OPERATION`; preserve the
 implementation branch, commits, and worktree. Do not integrate the default
 branch. Only all of these guards permit `DONE`.

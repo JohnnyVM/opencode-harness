@@ -54,6 +54,17 @@ class ArchitectGuidanceTests(unittest.TestCase):
         self.assertIn("complete 40-character output", content)
         self.assertIn("paste it verbatim into each review packet", content)
         self.assertIn("exit-zero skipped workflow", content)
+        cleaner = Path("opencode/agents/cleaner.md").read_text()
+        self.assertIn(
+            "IMPLEMENTING -> CLEANING -> TESTING -> REVIEWING -> DONE",
+            content,
+        )
+        self.assertLess(content.index("# Cleaner gate"), content.index("# Tester gate"))
+        self.assertIn("exact `git diff` for the current uncommitted", content)
+        self.assertIn("do not substitute a baseline-to-`HEAD` diff", content)
+        self.assertIn("before final verification and Code Review", cleaner)
+        self.assertNotIn("every applicable Tester `PASS` report", cleaner)
+        self.assertNotIn("Code Reviewer approval", cleaner)
 
 
 if __name__ == "__main__":
