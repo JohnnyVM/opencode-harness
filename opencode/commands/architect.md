@@ -18,3 +18,9 @@ to `docs/specs/brand-selection-architecture.md`:
 Quote paths containing spaces when using positional arguments.
 
 The architect command hook validates the specification and supplies its exact text together with the normalized output path.
+
+On a branch other than `main`, `/architect` commits the generated Architecture
+Package and its local Specification Package source, then verifies a clean
+worktree before the handoff. A GitHub issue source has no local Specification
+Package file, so only the generated Architecture Package is committed. The
+command never creates a commit on `main` or makes remote writes.

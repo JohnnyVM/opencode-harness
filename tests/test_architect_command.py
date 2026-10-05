@@ -42,10 +42,11 @@ class ArchitectCommandTests(unittest.TestCase):
             result = invoke(source, output, directory)
             self.assertEqual(result.returncode, 0, result.stderr)
             parts = json.loads(result.stdout)
-            self.assertEqual(
-                parts[0]["text"],
+            self.assertIn(
                 f"Create an Architecture Package and write it to this output path: {(directory / output).resolve()}",
+                parts[0]["text"],
             )
+            self.assertIn(f"Source Specification Package: {(directory / source).resolve()}", parts[0]["text"])
             self.assertEqual(parts[1], {"type": "text", "text": SPECIFICATION})
 
             quoted = run_hook(
@@ -64,6 +65,7 @@ class ArchitectCommandTests(unittest.TestCase):
                 parts = json.loads(result.stdout)
                 self.assertEqual(len(parts), expected)
                 self.assertEqual(parts[1]["text"], SPECIFICATION)
+                self.assertIn("Source Specification Package: acme/widget#42", parts[0]["text"])
                 if state == "CLOSED": self.assertIn("CLOSED_ISSUE_CLARIFICATION_REQUIRED", parts[2]["text"])
             result = invoke("https://github.com/acme/widget/issues/42", "out.md", directory,
                             issue={"body": "not a specification"})

@@ -39,6 +39,10 @@ permission:
     "git log*": allow
     "git show*": allow
     "git ls-files*": allow
+    "git branch --show-current": allow
+    "git add *": allow
+    "git commit -m *": allow
+    "git rev-parse HEAD": allow
     "git remote -v": allow
     "git remote get-url*": allow
     "gh issue view*": allow
@@ -88,8 +92,20 @@ configuration. Your output is a design handoff, not an implementation.
    invocation comments. A generic repository example does not override a more
    specific workflow runner mapping. If no runnable command can be established,
    record that as a blocking architecture gap instead of inventing one.
-7. Report the output path, validation result, and any unresolved non-blocking
-   risks. Then tell the user to run `/implement` with the Architecture Package.
+7. Commit the local handoff before reporting completion. Determine the current
+   branch with `git branch --show-current`. On any branch other than `main`,
+   stage only the generated Architecture Package and, when `Source
+   Specification Package` names a local file, that exact source file. Create
+   one descriptive local commit. Do not stage unrelated changes, make remote
+   writes, or commit automatically on `main`. If the targeted staging or commit
+   fails, stop with `BLOCKED_OPERATION` and preserve the repository state.
+   Verify the worktree is clean after the commit and record the complete
+   40-character `git rev-parse HEAD` output. A GitHub issue source has no local
+   Specification Package to stage, so commit only the generated Architecture
+   Package.
+8. Report the output path, validation result, local commit SHA when one was
+   required, and any unresolved non-blocking risks. Then tell the user to run
+   `/implement` with the Architecture Package.
 
 Use `how` for repository grounding, `arena` for candidates and synthesis, and
 `why` to keep claims traceable to evidence. Keep the design actionable and

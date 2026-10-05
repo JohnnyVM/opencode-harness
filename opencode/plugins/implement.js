@@ -48,13 +48,15 @@ function loadSource(source, directory, validator, label) {
   const issue = issueReference.exec(reference) ?? issueURL.exec(reference)
   let text
   let clarification
+  let localPath
   if (issue) {
     const issuePackage = loadIssue(reference, issue, directory)
     text = issuePackage.text
     clarification = issuePackage.clarification
   } else {
     try {
-      text = readFileSync(resolvePath(directory, reference), "utf8")
+      localPath = resolvePath(directory, reference)
+      text = readFileSync(localPath, "utf8")
     } catch (error) {
       throw new Error(`Cannot read package file ${reference}: ${error.message}`, { cause: error })
     }
@@ -65,7 +67,7 @@ function loadSource(source, directory, validator, label) {
   if (result.status !== 0) {
     throw new Error(`Invalid ${label} in ${reference}:\n${result.stderr.trim() || `validator exited ${result.status}`}`)
   }
-  return { text, clarification }
+  return { text, clarification, localPath }
 }
 
 function commandArguments(value) {
@@ -113,7 +115,11 @@ export default async ({ directory }) => ({
       const packageInput = loadSource(source, directory, specificationValidator, "Specification Package")
       const normalized = resolvePath(directory, destination)
       output.parts.splice(0, output.parts.length,
-        { type: "text", text: `Create an Architecture Package and write it to this output path: ${normalized}` },
+        {
+          type: "text",
+          text: `Create an Architecture Package and write it to this output path: ${normalized}\n` +
+            `Source Specification Package: ${packageInput.localPath ?? source}`,
+        },
         { type: "text", text: packageInput.text },
         ...(packageInput.clarification ? [{ type: "text", text: packageInput.clarification }] : []),
       )

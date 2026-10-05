@@ -14,6 +14,21 @@ class ArchitectGuidanceTests(unittest.TestCase):
             self.assertIn(f'"{name}": allow', frontmatter)
         self.assertIn("do not implement production code", content.lower())
         self.assertIn("`runs-on` labels", content)
+        for command in (
+            '"git branch --show-current": allow',
+            '"git add *": allow',
+            '"git commit -m *": allow',
+            '"git rev-parse HEAD": allow',
+        ):
+            with self.subTest(command=command):
+                self.assertIn(command, frontmatter)
+        self.assertIn("On any branch other than `main`", content)
+        self.assertIn("stage only the generated Architecture Package", content)
+        self.assertIn("Do not stage unrelated changes", content)
+        self.assertIn("Verify the worktree is clean after the commit", content)
+        self.assertIn("complete\n   40-character `git rev-parse HEAD` output", content)
+        self.assertIn("GitHub issue source has no local", content)
+        self.assertIn("make remote\n   writes", content)
 
     def test_dependency_skills_and_references_exist(self):
         skills = Path("opencode/skills")

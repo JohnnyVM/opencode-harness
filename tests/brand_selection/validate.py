@@ -44,4 +44,21 @@ branch = subprocess.run(
 if branch != "e2e/brand-selection":
     raise AssertionError(f"implementation left guarded branch: {branch!r}")
 
+for handoff in (specification, architecture):
+    relative = handoff.relative_to(repository)
+    subprocess.run(
+        ["git", "ls-files", "--error-unmatch", str(relative)],
+        cwd=repository,
+        check=True,
+    )
+    commit = subprocess.run(
+        ["git", "log", "-1", "--format=%H", "--", str(relative)],
+        cwd=repository,
+        text=True,
+        stdout=subprocess.PIPE,
+        check=True,
+    ).stdout.strip()
+    if len(commit) != 40:
+        raise AssertionError(f"architect handoff was not committed: {relative}")
+
 subprocess.run(["git", "diff", "--check"], cwd=repository, check=True)
