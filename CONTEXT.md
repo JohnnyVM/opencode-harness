@@ -43,7 +43,7 @@ through leaf workers.
 _Avoid_: Lead, coder
 
 **Worker**:
-A delegated coder, Debugger, Tester, Code Reviewer, or Cleaner that performs
+A delegated coder, Debugger, Tester, or Code Reviewer that performs
 one bounded assignment and cannot delegate further.
 _Avoid_: Nested agent
 

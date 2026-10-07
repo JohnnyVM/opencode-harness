@@ -595,7 +595,6 @@ def _validate_done_report(report, entries):
         raise AssertionError("DONE implementation report has incomplete tickets")
     verification = sections["Verification"].replace("**", "").replace("`", "")
     gates = (
-        (r"Cleaner:\s*PASS\b", "Cleaner PASS"),
         (r"Tester(?: gate)?:\s*PASS\b", "Tester PASS"),
         (r"Code Review(?:er)?:\s*(?:Verdict:\s*)?APPROVED\b", "Code Reviewer approval"),
     )

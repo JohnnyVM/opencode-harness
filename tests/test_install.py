@@ -111,12 +111,12 @@ class InstallerTests(unittest.TestCase):
             install.main(["--not-an-option"])
         self.assertNotEqual(raised.exception.code, 0)
 
-    def test_real_agent_enumeration_includes_cleaner(self):
+    def test_real_agent_enumeration_excludes_cleaner(self):
         source = install.source_root() / "opencode"
         entries = dict(install._entries(source))
         cleaner = source / "agents" / "cleaner.md"
-        self.assertIn(cleaner, entries)
-        self.assertEqual(entries[cleaner], Path("agents") / "cleaner.md")
+        self.assertNotIn(cleaner, entries)
+        self.assertFalse(cleaner.exists())
 
     def test_real_conditional_agents_are_discovered_and_linked(self):
         """Test that the new conditional agents are discovered and linked by the installer."""

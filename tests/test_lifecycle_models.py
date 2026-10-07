@@ -49,8 +49,8 @@ class LifecycleModelTests(unittest.TestCase):
             report = ("## Outcome and Stopping Point\nStatus: DONE — all gates passed.\n"
                       "## Ticket Ledger\n- T1: completed — src/one.py\n"
                       "- T2: completed — src/two.py\n"
-                       "## Verification\nCleaner: PASS\n- **Tester gate:** `PASS`.\n"
-                       "Code Reviewer: APPROVED\n"
+                      "## Verification\n- **Tester gate:** `PASS`.\n"
+                      "Code Reviewer: APPROVED\n"
                       "## Blocker and Causal Chain\nNone.\n"
                       "## Remaining Work and Safest Next Action\nNone.\n")
             session = {"messages": [
@@ -69,6 +69,18 @@ class LifecycleModelTests(unittest.TestCase):
             session["messages"][1]["parts"][0]["text"] = report.replace("`PASS`", "`FAIL`")
             path.write_text(json.dumps(session))
             with self.assertRaisesRegex(AssertionError, "Tester PASS"):
+                lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
+            session["messages"][1]["parts"][0]["text"] = report.replace(
+                "Code Reviewer: APPROVED", "Code Reviewer: CHANGES_REQUIRED"
+            )
+            path.write_text(json.dumps(session))
+            with self.assertRaisesRegex(AssertionError, "Code Reviewer approval"):
+                lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
+            session["messages"][1]["parts"][0]["text"] = report.replace(
+                "T2: completed", "T2: partial"
+            )
+            path.write_text(json.dumps(session))
+            with self.assertRaisesRegex(AssertionError, "incomplete tickets"):
                 lifecycle_opencode.validate_implementation_report(root, package, expected_status="DONE")
             session["messages"][1]["parts"][0]["text"] = report.replace(
                 "- T2: completed — src/two.py\n", ""

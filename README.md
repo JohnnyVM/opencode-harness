@@ -152,8 +152,8 @@ and verifies both exact handoffs, the guarded branch, and focused `unittest`.
 at commit `20376ca2a63b5e447258fb9ca4cdc4a63c7593cb`, generates
 `docs/spec/brand-selection.md` without questions, invokes `/architect` with its
 default `-architecture` output path, and passes that package to `/implement`.
-It requires a final `DONE` report with every ticket completed, Tester and Cleaner
-PASS, and Code Reviewer approval, alongside exact handoffs and the guarded branch.
+It requires a final `DONE` report with every ticket completed, Tester PASS,
+and Code Reviewer approval, alongside exact handoffs and the guarded branch.
 This scenario requires repository access through the authenticated `gh` CLI and SSH.
 GitHub issue URL and shorthand loading are covered by command integration tests
 using local fixtures rather than mutable external issue bodies.
