@@ -42,6 +42,8 @@ permission:
     "git branch --show-current": allow
     "git add *": allow
     "git commit -m *": allow
+    "git push*": allow
+    "git worktree *": allow
     "git rev-parse HEAD": allow
     "git remote -v": allow
     "git remote get-url*": allow
