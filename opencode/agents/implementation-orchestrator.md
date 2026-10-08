@@ -1,7 +1,7 @@
 ---
 description: Independently executes validated Architecture Packages through guarded Coder Assignments
 mode: primary
-model: openai/gpt-6.1-sol
+model: openai/gpt-6-luna
 
 permission:
   edit: deny

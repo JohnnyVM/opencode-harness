@@ -1,7 +1,7 @@
 ---
 description: Reproduces verification failures, tests hypotheses, and reports evidence-backed root causes
 mode: subagent
-model: openai/gpt-6.1-sol
+model: openai/gpt-6-luna
 
 permission:
   edit:
