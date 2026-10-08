@@ -1,7 +1,7 @@
 ---
 description: Runs the supplied Verification Matrix and consolidates every failure
 mode: subagent
-model: openai/gpt-6-sol
+model: openai/gpt-6.1-sol
 
 permission:
   edit: deny

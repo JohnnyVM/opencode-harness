@@ -128,8 +128,8 @@ python3 scripts/run_tests.py basic_greeting
 python3 scripts/run_tests.py github_issue_greeting
 python3 scripts/run_tests.py brand_selection
 python3 scripts/run_tests.py fix_multiple_customers \
-  --spec-model openai/gpt-6-sol \
-  --architect-model openai/gpt-6-sol \
+  --spec-model openai/gpt-6.1-sol \
+  --architect-model openai/gpt-6.1-sol \
   --implementation-model openai/gpt-6-luna \
   --coder-light-model ovhcloud/qwen3-coder-30b-a3b-instruct \
   --coder-medium-model openai/gpt-6-luna \

@@ -266,7 +266,7 @@ class LifecycleModelTests(unittest.TestCase):
         with patch.dict(os.environ, {key: "" for key in lifecycle_opencode.MODEL_ENV.values()}):
             self.assertEqual(lifecycle_opencode.selected_models(), {})
             self.assertEqual(lifecycle_opencode.expected_primary_models(),
-                             ("openai/gpt-6-sol", "openai/gpt-6-sol", "openai/gpt-6-luna"))
+                             ("openai/gpt-6.1-sol", "openai/gpt-6.1-sol", "openai/gpt-6-luna"))
             self.assertEqual(lifecycle_opencode.DEFAULT_MODELS["coder-medium"],
                              "openai/gpt-6-luna")
 
@@ -281,7 +281,7 @@ class LifecycleModelTests(unittest.TestCase):
             artifacts = Path(temp)
             stages = []
             for stage, agent, model in (
-                ("specification", "spec-orchestrator", "openai/gpt-6-sol"),
+                ("specification", "spec-orchestrator", "openai/gpt-6.1-sol"),
                 ("architecture", "architect", "wrong/architect"),
                 ("implementation", "implementation-orchestrator", "openai/gpt-6-luna"),
                 ("implementation", "coder-light", "wrong/model"),

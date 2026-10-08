@@ -279,20 +279,25 @@ branch. Only all of these guards permit `DONE`.
 
 ## Coder selection and per-ticket attempts
 
-Start straightforward tickets with `coder-light`. Start complex tickets with
-`coder-medium`: examples include coupled changes across modules or substantial
-implementation reasoning within the approved architecture. Record the concrete
-complexity reason in the ticket ledger before dispatch; complexity does not
-authorize new architecture or broader scope.
+Start every ticket with `coder-light`.
 
-For a ticket starting with `coder-light`, allow its initial implementation
-attempt and at most two consolidated light correction attempts per failure
-signature. When that light budget is exhausted, escalate to `coder-medium`.
-Do not skip medium and reassign directly from light to heavy.
+Allow at most **20 `coder-light` dispatches per ticket**, including its initial
+implementation attempt and all later light correction attempts. Do not reset
+this counter for a new failure signature, confirmed root cause, testing/review
+cycle, or user-approved commit. Escalate to `coder-medium` as soon as light is
+stuck: it reports an implementation obstacle it cannot resolve with the supplied
+context, repeats an unsuccessful approach, or successive attempts make no
+meaningful progress on the same failure. Record the concrete evidence in the
+ticket ledger; use Debugger first when the failure needs diagnosis under the
+existing routing rules. The 20-dispatch budget is a ceiling, not a requirement
+to keep retrying a stuck coder. Also escalate when the light budget is exhausted
+and another attempt is needed. Pass the current candidate, prior attempt
+reports, check evidence, and any confirmed Debug Report to medium. Once
+escalated, keep subsequent corrections at medium until heavy escalation is
+required. Do not skip medium and reassign directly from light to heavy.
 
 Allow at most **three `coder-medium` dispatches per ticket**, including its
-initial medium attempt and all later medium correction attempts. This applies
-whether medium was selected directly or reached through light escalation.
+initial escalated medium attempt and all later medium correction attempts.
 Do not reset this counter for a new failure signature, confirmed root cause,
 testing/review cycle, or user-approved commit. After three unsuccessful medium
 attempts, escalate to `coder-heavy` with the current candidate, prior attempt

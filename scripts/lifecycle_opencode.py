@@ -21,8 +21,8 @@ MODEL_ENV = {
     "coder-heavy": "TEST_CODER_HEAVY_MODEL",
 }
 DEFAULT_MODELS = {
-    "spec-orchestrator": "openai/gpt-6-sol",
-    "architect": "openai/gpt-6-sol",
+    "spec-orchestrator": "openai/gpt-6.1-sol",
+    "architect": "openai/gpt-6.1-sol",
     "implementation-orchestrator": "openai/gpt-6-luna",
     "coder-light": "ovhcloud/qwen3-coder-30b-a3b-instruct",
     "coder-medium": "openai/gpt-6-luna",

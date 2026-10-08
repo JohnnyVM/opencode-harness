@@ -1,7 +1,7 @@
 ---
 description: Interactive specification designer responsible for discovery, product decisions, acceptance criteria, and validated Specification Packages
 mode: primary
-model: openai/gpt-6-sol
+model: openai/gpt-6.1-sol
 
 permission:
   edit:
