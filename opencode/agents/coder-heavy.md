@@ -1,7 +1,7 @@
 ---
 description: Implements one bounded engineering ticket
 mode: subagent
-model: openai/gpt-6.1-sol
+model: openai/gpt-6-luna
 
 permission:
   edit:

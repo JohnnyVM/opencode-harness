@@ -10,14 +10,25 @@ produces an Architecture Package, without implementing production code.
 
 ## Package rules
 
+- Produce Architecture Package version 2 only; version 1 is retired and must be
+  regenerated, not migrated or accepted as a second format.
 - Preserve and reproduce the input Specification Package verbatim as a frozen
-  section. Never revise its requirements while designing.
+  final section. Never revise its requirements while designing.
 - Ground decisions in repository evidence; mark assumptions, inferences, and
   unknowns explicitly.
-- Include at least two structurally distinct candidates, a comparison using
-  stated criteria, and a reasoned synthesis.
-- Record important interfaces/seams, responsibilities, flows, constraints,
-  risks, trade-offs, and implementation-facing guidance.
+- Follow the ordered v2 contract template: Decision Summary, Repository Findings,
+  Architecture Candidates, Comparison and Recommendation, Proposed Design,
+  Interfaces and Behavior, Implementation Plan, Testing Strategy, Verification
+  Matrix, Requirements Traceability, Risks and Open Questions, Frozen
+  Specification.
+- Include at least two structurally distinct candidates, compare them using
+  explicit relevant criteria, and explain the recommendation without unexplained
+  scores.
+- Use stable C/D/T/L identifiers. Every acceptance criterion must trace to at
+  least one design decision, implementation ticket, and verification check.
+- Record implementation ticket outputs and exact runnable verification details.
+- Keep the report concise and decision-first; avoid repeating the same rationale
+  across sections.
 - Write only to the user's explicit output path. Validate with the available
   validator and report exactly what was or was not checked.
 - A design review may challenge the result but must not edit it. No claim of

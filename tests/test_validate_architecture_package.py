@@ -26,27 +26,37 @@ None
 None
 ## Out of Scope
 None"""
-PACKAGE = f"""status: ARCHITECTURE_READY
-<!-- BEGIN SPECIFICATION PACKAGE -->
-{SPEC}
-<!-- END SPECIFICATION PACKAGE -->
-## Architecture Summary
-Summary
-## Usage and Interface Sketch
-Sketch
-## Structural Decisions
-Decisions
-## Implementation Decisions
-Decisions
-## Testing Strategy
-Tests
-## Tickets and Dependencies
+PACKAGE = f"""package-version: 2
+status: ARCHITECTURE_READY
+## Decision Summary
+Recommendation and trade-offs.
+## Repository Findings
+Evidence from src/file.py.
+## Architecture Candidates
+### C1 — Extend existing module
+- Structure: Existing module owns behavior.
+### C2 — Add adapter
+- Structure: Adapter owns behavior.
+## Comparison and Recommendation
+| Criterion | C1 — Extend | C2 — Adapter |
+|---|---|---|
+| Repository fit | Good | New seam |
+Selected C1 because it reuses the existing seam.
+## Proposed Design
+### D1 — Keep behavior in module
+- Decision: Extend existing implementation.
+## Interfaces and Behavior
+Existing interface is preserved.
+## Implementation Plan
 ### T1 — Build
 - Dependencies: None
 - Allowed: src/file.py
 - Forbidden: None
 - Criteria: AC1
 - Approach: Implement feature
+- Outputs: Working feature.
+## Testing Strategy
+Reuse focused tests.
 ## Verification Matrix
 ### Local
 #### L1 — Tests
@@ -54,10 +64,19 @@ Tests
 - Working directory: .
 - Prerequisites: None
 - Expected: Pass
-## Architecture Risks
+## Requirements Traceability
+| Criterion | Design decisions | Tickets | Verification |
+|---|---|---|---|
+| AC1 | D1 | T1 | L1 |
+## Risks and Open Questions
+### Risks
 None
-## Architecture Unknowns
+### Open questions
 None
+## Frozen Specification
+<!-- BEGIN SPECIFICATION PACKAGE -->
+{SPEC}
+<!-- END SPECIFICATION PACKAGE -->
 """
 
 
@@ -85,8 +104,8 @@ class ArchitectureTests(unittest.TestCase):
 
     def test_rejects_empty_section_unassigned_criterion_and_nonconcrete_scope(self):
         self.assertIn(
-            "missing or empty section: Architecture Summary",
-            validator.validate(PACKAGE.replace("## Architecture Summary\nSummary", "## Architecture Summary")),
+            "missing or empty section: Decision Summary",
+            validator.validate(PACKAGE.replace("## Decision Summary\nRecommendation and trade-offs.", "## Decision Summary")),
         )
         extra = PACKAGE.replace("## Risks", "- AC2: Also works\n## Risks")
         self.assertIn("unassigned criterion: AC2", validator.validate(extra))
@@ -94,6 +113,20 @@ class ArchitectureTests(unittest.TestCase):
             "T1: Allowed requires concrete scope",
             validator.validate(PACKAGE.replace("- Allowed: src/file.py", "- Allowed: None")),
         )
+
+    def test_rejects_v1_and_enforces_traceability_and_candidate_comparison(self):
+        old_format = PACKAGE.replace("package-version: 2", "").replace("## Decision Summary", "## Architecture Summary")
+        self.assertTrue(any("package-version: 2" in error for error in validator.validate(old_format)))
+        self.assertIn("missing traceability row for AC1", validator.validate(
+            PACKAGE.replace("| AC1 | D1 | T1 | L1 |", "| AC9 | D1 | T1 | L1 |")
+        ))
+        self.assertIn("Comparison and Recommendation must compare C2", validator.validate(
+            PACKAGE.replace("| Criterion | C1 — Extend | C2 — Adapter |", "| Criterion | C1 — Extend | Other |")
+        ))
+        self.assertIn("AC1: T1 does not declare this criterion", validator.validate(
+            PACKAGE.replace("- Criteria: AC1", "- Criteria: AC2")
+        ))
+        self.assertEqual(validator.validate(PACKAGE, SPEC), [])
 
 
 if __name__ == "__main__":

@@ -67,23 +67,27 @@ configuration. Your output is a design handoff, not an implementation.
 # Workflow
 
 1. Preserve the received validated Specification Package verbatim. Do not
-   rewrite, normalize, or silently amend it; include its exact text in the
-   Architecture Package as the frozen specification.
+   rewrite, normalize, or silently amend it; include its exact text in the final
+   `Frozen Specification` section of Architecture Package v2.
 2. Ground the design in the actual repository: inspect relevant code, tests,
    conventions, constraints, and existing seams. Delegate bounded read-only
    exploration or research where useful, and distinguish evidence from
    inference.
 3. Produce at least two structurally distinct architecture candidates. Explain
-   each candidate's boundaries, responsibilities, data/control flow, and fit to
-   the frozen requirements; do not present cosmetic variants as alternatives.
-4. Compare candidates against explicit criteria and synthesize a recommended
-   design, recording rationale, trade-offs, risks, assumptions, and rejected
-   choices. Never imply multi-model or independent review unless it actually
-   occurred.
+   each candidate's boundaries, responsibilities, data/control flow, interfaces,
+   requirement fit, benefits, costs, and risks; do not present cosmetic variants.
+4. Compare candidates against relevant explicit criteria and synthesize a
+   recommendation. Use the exact Architecture Package v2 structure in
+   `opencode/contracts/architecture-package.md`: decision-first summary,
+   repository findings, candidates, evidence-based comparison, proposed design,
+   interfaces/behavior, implementation tickets, testing, verification, complete
+   AC-to-decision/ticket/check traceability, risks/open questions, and the frozen
+   specification last. Use stable C/D/T/L identifiers and avoid repeated rationale.
+   Never imply multi-model or independent review unless it actually occurred.
 5. Optionally use `interrogate` to test the recommendation. It returns a
    verdict only and makes no edits. Incorporate or explicitly answer material
    objections.
-6. Write the complete Architecture Package to the output path explicitly
+6. Write the complete Architecture Package v2 to the output path explicitly
    requested by the user. If no output path was specified, ask rather than
    choosing one. Validate it with the available architecture validator, using
    its `--specification` option when the original package path is available so
@@ -108,7 +112,22 @@ configuration. Your output is a design handoff, not an implementation.
    Package.
 8. Report the output path, validation result, local commit SHA when one was
    required, and any unresolved non-blocking risks. Then tell the user to run
-   `/implement` with the Architecture Package.
+   `/implement` with the Architecture Package v2.
+
+## Completion response
+
+After the package is written and required local commit handling is complete,
+respond with a compact handoff:
+
+- Package path
+- One-sentence recommendation and scope
+- Validation performed and result (distinguish structural validation from design review)
+- Full local commit SHA when a commit was required
+- Remaining non-blocking risk or `None`
+- Next command: `/implement <package-path>`
+
+Do not paste the complete package into this response unless the user asks; the
+package file is the canonical report.
 
 Use `how` for repository grounding, `arena` for candidates and synthesis, and
 `why` to keep claims traceable to evidence. Keep the design actionable and

@@ -40,8 +40,13 @@ Treat the received text as the validated package for this run, supplemented by
 explicit user-approved changes recorded under User-approved commits below. Do not run
 the package validator again, ask for the source path, or block because the
 conversation text cannot be piped to a process. Report visibly missing required
-sections and stop if the content is not a complete package. Do not dispatch
-Workers until intake is complete.
+sections and stop if the content is not a complete Architecture Package v2.
+Version 1 is not accepted. Read the `Decision Summary`, `Repository Findings`,
+`Comparison and Recommendation`, `Proposed Design`, `Interfaces and Behavior`,
+`Implementation Plan`, `Testing Strategy`, `Verification Matrix`, `Requirements
+Traceability`, and `Risks and Open Questions` as the canonical package sections;
+the verbatim source requirements are at the end under `Frozen Specification`.
+Do not dispatch workers until intake is complete.
 
 If the handoff includes `CLOSED_ISSUE_CLARIFICATION_REQUIRED`, pause before
 planning and ask the user whether to proceed with the closed issue or stop. The
@@ -50,10 +55,14 @@ only after the user explicitly confirms proceeding in this conversation.
 
 # Ticket planning and Coder Assignment boundary
 
-At planning, enumerate every active ticket in the received package and maintain
+At planning, enumerate every active T-ID ticket in `Implementation Plan` and maintain
 a ledger of its dependencies, status, worker attempts, changed paths, and check
 evidence throughout the run. Plan required interfaces and dependency outputs
 from the package, not from the prior conversation or a superseded revision.
+Treat the package's Requirements Traceability table as the required mapping from
+each AC to design decisions, tickets, and verification checks. Detect any
+contradiction between that mapping and the detailed ticket/check sections before
+dispatch; route package gaps to Architect rather than filling them by guesswork.
 Before dispatch, compare each supplied command with the current repository's
 named workflow/job and runner labels. A command that maps only unrelated runner
 labels, selects no job, or would skip the required check is an Architecture

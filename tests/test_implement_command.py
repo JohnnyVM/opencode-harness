@@ -30,27 +30,37 @@ None
 None
 ## Out of Scope
 None"""
-PACKAGE = f"""status: ARCHITECTURE_READY
-<!-- BEGIN SPECIFICATION PACKAGE -->
-{SPEC}
-<!-- END SPECIFICATION PACKAGE -->
-## Architecture Summary
-Summary
-## Usage and Interface Sketch
-Sketch
-## Structural Decisions
-Decisions
-## Implementation Decisions
-Decisions
-## Testing Strategy
-Tests
-## Tickets and Dependencies
+PACKAGE = f"""package-version: 2
+status: ARCHITECTURE_READY
+## Decision Summary
+Recommendation and trade-offs.
+## Repository Findings
+Evidence from src/file.py.
+## Architecture Candidates
+### C1 — Extend existing module
+- Structure: Existing module owns behavior.
+### C2 — Add adapter
+- Structure: Adapter owns behavior.
+## Comparison and Recommendation
+| Criterion | C1 — Extend | C2 — Adapter |
+|---|---|---|
+| Repository fit | Good | New seam |
+Selected C1 because it reuses the existing seam.
+## Proposed Design
+### D1 — Keep behavior in module
+- Decision: Extend existing implementation.
+## Interfaces and Behavior
+Existing interface is preserved.
+## Implementation Plan
 ### T1 — Build
 - Dependencies: None
 - Allowed: src/file.py
 - Forbidden: None
 - Criteria: AC1
 - Approach: Implement feature
+- Outputs: Working feature.
+## Testing Strategy
+Reuse focused tests.
 ## Verification Matrix
 ### Local
 #### L1 — Tests
@@ -58,10 +68,19 @@ Tests
 - Working directory: .
 - Prerequisites: None
 - Expected: Pass
-## Architecture Risks
+## Requirements Traceability
+| Criterion | Design decisions | Tickets | Verification |
+|---|---|---|---|
+| AC1 | D1 | T1 | L1 |
+## Risks and Open Questions
+### Risks
 None
-## Architecture Unknowns
+### Open questions
 None
+## Frozen Specification
+<!-- BEGIN SPECIFICATION PACKAGE -->
+{SPEC}
+<!-- END SPECIFICATION PACKAGE -->
 """
 
 RUN_HOOK = """
@@ -131,6 +150,15 @@ class ImplementCommandTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(json.loads(result.stdout), [{"type": "text", "text": PACKAGE}])
 
+    def test_retired_v1_package_is_rejected_with_regeneration_guidance(self):
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp)
+            (directory / "old-architecture.md").write_text(PACKAGE.replace("package-version: 2", "package-version: 1"))
+            result = run_hook("old-architecture.md", directory)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("version 1 packages must be regenerated", result.stderr)
+            self.assertEqual(result.stdout, "")
+
     def test_github_issue_package_replaces_prompt_exactly(self):
         clarification = (
             "CLOSED_ISSUE_CLARIFICATION_REQUIRED: GitHub issue acme/widget#42 is closed. "
@@ -160,7 +188,7 @@ class ImplementCommandTests(unittest.TestCase):
 
     def test_invalid_issue_body_stops_handoff(self):
         for issue, expected in (
-            ({"body": "Implement feature"}, "INVALID: requires exactly one outer ARCHITECTURE_READY status"),
+            ({"body": "Implement feature"}, "INVALID:"),
             ({"error": "could not resolve to an issue"}, "BLOCKED_SPEC"),
         ):
             with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temp:
@@ -172,7 +200,7 @@ class ImplementCommandTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("opencode"), "OpenCode CLI not installed")
     def test_opencode_rejects_invalid_github_issue_before_agent_run(self):
         for issue, expected in (
-            ({"body": "Implement feature"}, "INVALID: requires exactly one outer ARCHITECTURE_READY status"),
+            ({"body": "Implement feature"}, "INVALID:"),
             ({"error": "could not resolve to an issue"}, "BLOCKED_SPEC"),
         ):
             with self.subTest(expected=expected), tempfile.TemporaryDirectory() as temp:

@@ -45,7 +45,7 @@ class LifecycleModelTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             package = root / "package.md"
-            package.write_text("## Tickets and Dependencies\n### T1 — First\n### T2 — Second\n")
+            package.write_text("## Implementation Plan\n### T1 — First\n### T2 — Second\n")
             report = ("## Outcome and Stopping Point\nStatus: DONE — all gates passed.\n"
                       "## Ticket Ledger\n- T1: completed — src/one.py\n"
                       "- T2: completed — src/two.py\n"

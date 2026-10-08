@@ -87,8 +87,11 @@ Run Architect with a local file or GitHub issue and an explicit local output:
 
 Architect uses
 [`opencode/contracts/architecture-package.md`](opencode/contracts/architecture-package.md),
-preserves the complete specification verbatim, and validates its output. It is
-model-neutral: its agent configuration does not pin a provider or model.
+produces Architecture Package v2, places the decision and recommendation first,
+traces every acceptance criterion through decisions, tickets, and verification,
+and preserves the complete specification verbatim at the end. The `/implement`
+hook rejects retired v1 packages; regenerate them with `/architect`. Architect
+validates the structure, while design feasibility remains a human/agent judgment.
 
 Implementation Orchestrator creates per-ticket packets using
 [`opencode/contracts/coder-assignment.md`](opencode/contracts/coder-assignment.md).
