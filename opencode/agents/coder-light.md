@@ -1,7 +1,7 @@
 ---
 description: Implements one bounded engineering ticket
 mode: subagent
-model: ovhcloud/qwen3-coder-30b-a3b-instruct
+model: openai/gpt-6-luna
 temperature: 0.7
 top_p: 0.8
 steps: 100
