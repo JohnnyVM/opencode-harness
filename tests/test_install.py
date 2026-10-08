@@ -16,12 +16,16 @@ class InstallerTests(unittest.TestCase):
         (source / "commands").mkdir(parents=True)
         (source / "contracts").mkdir(parents=True)
         (source / "scripts").mkdir(parents=True)
+        plugin = source / "plugins" / "nested-plugin"
+        (plugin / ".opencode" / "plugin").mkdir(parents=True)
         (source / "opencode.jsonc").write_text("{}")
         (source / "agents" / "z.md").write_text("z")
         (source / "agents" / "ignore.txt").write_text("ignore")
         (source / "commands" / "a.md").write_text("a")
+        (source / "commands" / "context.md").write_text("context command")
         (source / "contracts" / "package.md").write_text("contract")
         (source / "scripts" / "validate.py").write_text("validator")
+        (plugin / ".opencode" / "plugin" / "main.ts").write_text("plugin")
         (source / "skills" / "alpha" / "SKILL.md").write_text("alpha skill")
         return source
 
@@ -36,8 +40,10 @@ class InstallerTests(unittest.TestCase):
                 destination / "agents" / "z.md": source / "agents" / "z.md",
                 destination / "skills" / "alpha": source / "skills" / "alpha",
                 destination / "commands" / "a.md": source / "commands" / "a.md",
+                destination / "commands" / "context.md": source / "commands" / "context.md",
                 destination / "contracts" / "package.md": source / "contracts" / "package.md",
                 destination / "scripts" / "validate.py": source / "scripts" / "validate.py",
+                destination / "plugins" / "nested-plugin": source / "plugins" / "nested-plugin",
             }
             for path, target in expected.items():
                 self.assertTrue(path.is_symlink())
@@ -177,8 +183,10 @@ class InstallerTests(unittest.TestCase):
         items = [
             source / "agents" / "architect.md",
             source / "commands" / "architect.md",
+            source / "commands" / "context.md",
             source / "commands" / "implement.md",
             source / "plugins" / "implement.js",
+            source / "plugins" / "context-analysis-upstream",
         ]
         entries = dict(install._entries(source))
         for item in items:

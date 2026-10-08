@@ -1,0 +1,4 @@
+[submodule "opencode/plugins/context-analysis-upstream"]
+	path = opencode/plugins/context-analysis-upstream
+	url = https://github.com/IgorWarzocha/Opencode-Context-Analysis-Plugin.git
+	ignore = dirty

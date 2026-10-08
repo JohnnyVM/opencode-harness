@@ -22,6 +22,7 @@ repository targets:
 - each `opencode/contracts/*.md`
 - each `opencode/scripts/*.py`
 - each `opencode/plugins/*.js`
+- each nested `opencode/plugins/<plugin>/` directory
 
 It skips existing destinations rather than replacing them. Back up and remove
 an existing destination before linking it if needed.
@@ -37,6 +38,26 @@ Existing files, directories, valid links, and broken links are warned about
 and skipped without modification. The installer resolves source paths
 independently of the current working directory (cwd-independent). After
 installation, restart OpenCode to load the new configuration.
+
+### Context usage plugin
+
+The `/context` command uses
+[IgorWarzocha/Opencode-Context-Analysis-Plugin](https://github.com/IgorWarzocha/Opencode-Context-Analysis-Plugin),
+pinned as a Git submodule. Initialize submodules when cloning this repository,
+then install its local tokenizer dependencies:
+
+```bash
+git submodule update --init --recursive
+python3 scripts/install_context_analysis_plugin.py
+python3 scripts/install.py
+```
+
+The setup script applies a compatibility bridge for the current camelCase
+`js-tiktoken` API and installs pinned tokenizer packages.
+The plugin reads the selected OpenCode session locally and reports token counts,
+not message contents. Hugging Face tokenizer files may be downloaded from their
+model hub on first use; conversation text is passed to the local tokenizer and
+is not sent to that service. Restart OpenCode after installation.
 
 ## Conditional agents
 

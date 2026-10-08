@@ -37,6 +37,14 @@ def _entries(source):
             if path.is_file():
                 entries.append((path, Path(directory) / path.name))
 
+    plugins = source / "plugins"
+    if plugins.is_dir():
+        entries.extend(
+            (path, Path("plugins") / path.name)
+            for path in sorted(plugins.iterdir())
+            if path.is_dir()
+        )
+
     return entries
 
 
