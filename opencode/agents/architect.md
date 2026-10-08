@@ -1,6 +1,7 @@
 ---
 description: Grounds validated specifications in the repository, compares architecture candidates, and produces a validated Architecture Package
 mode: primary
+model: openai/gpt-6.1-sol
 
 permission:
   edit:

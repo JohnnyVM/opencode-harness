@@ -1,7 +1,7 @@
 ---
 description: Implements one bounded complex engineering ticket or an escalated light-coder attempt
 mode: subagent
-model: openai/gpt-6-luna
+model: openai/gpt-6.1-sol
 
 permission:
   edit:

@@ -1,7 +1,7 @@
 ---
 description: Analyzes code patterns and structures to support specification design and architectural decisions
 mode: subagent
-model: openai/gpt-6.1-sol
+model: openai/gpt-6-luna
 
 permission:
   edit: deny
