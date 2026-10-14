@@ -1,6 +1,6 @@
 # OpenCode configuration
 
-This repository provides seven standalone skills and a Playwright MCP config:
+This repository provides nine standalone skills and a Playwright MCP config:
 
 - `codebase-design`
 - `domain-modeling`
@@ -9,6 +9,8 @@ This repository provides seven standalone skills and a Playwright MCP config:
 - `grill-with-docs` (uses `grilling` and `domain-modeling`)
 - `grilling`
 - `setup-skills` (invoked with `/setup-skills`)
+- `to-spec`
+- `to-tickets`
 
 The Matt Pocock skills are adapted from
 [mattpocock/skills](https://github.com/mattpocock/skills) at
