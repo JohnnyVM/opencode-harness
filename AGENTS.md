@@ -1,13 +1,6 @@
-# Repository Guidance
+# Repository guidance
 
-This repository represents a configuration for opencode.
+This repository provides OpenCode configuration under `opencode/`.
 
-- Project configuration lives under `opencode/`.
-- Skills are stored in `opencode/skills/<skill-name>/SKILL.md`.
-- Agents are stored in `opencode/agents/`.
-- Direct commands are stored in `opencode/commands/<name>.md`.
-- Preserve the existing opencode configuration schema and conventions when making changes.
-
-## Skills
-
-Standalone OpenCode skills are stored in `opencode/skills/`.
+Skills live in `opencode/skills/<skill-name>/SKILL.md`. Preserve the existing
+configuration schema and conventions when making changes.
